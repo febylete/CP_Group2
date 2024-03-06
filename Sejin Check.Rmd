@@ -1,0 +1,124 @@
+---
+title: "Sejin Data Check"
+author: "Group 2"
+date: "2024-03-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#packs
+```{r packageload}
+library(readr)
+library(dplyr)
+```
+
+#data load
+```{r dataload}
+CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
+ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
+```
+#data prep
+```{r dataprep}
+#Chinese data, renaming/changing data types to factors
+CNdata_filtered_120123$Feed <- CNdata_filtered_120123$feed_typefour
+CNdata_filtered_120123$Feed <- as.factor(CNdata_filtered_120123$Feed)
+CNdata_filtered_120123$valence <- as.factor(CNdata_filtered_120123$valence)
+
+#Chinese data, selecting relevant variables
+Data_CN <- CNdata_filtered_120123 |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,gender,age) |> 
+  mutate(Group = 1)
+
+#English data, selecting relevant variables
+Data_EN <-ENdata_filtered_110123 |> 
+  dplyr::mutate(valence = feed_valence) |>
+  dplyr::mutate(Feed = feedtype_four) |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,gender,age) |> 
+  mutate(Group = 0)
+
+#English data, changing data types to factors
+Data_EN$Feed <- as.factor(Data_EN$Feed)
+Data_EN$valence <- as.factor(Data_EN$valence)
+
+#one dataframe, Group (1 = Chinese 0 = American)
+Data <- rbind(Data_CN,Data_EN)
+Data$Group <- as.factor(Data$Group)
+
+#fixing age and gender
+Data$age <- 2024 - Data$age
+Data$gender <- as.factor(Data$gender)
+
+#can select additional variables for regression, these were just the ones that stuck out as easy to add
+```
+
+#some plots
+```{r plots}
+library(ggplot2)
+library(gridExtra)
+
+
+#Feed X Shareworthiness (ordinal, so boxplot)
+boxS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
+  geom_boxplot() + 
+  ggtitle("English Data Feed Type and Shareworthiness Scores (Ordinal)")
+
+boxS2 <- ggplot(Data_CN, aes(Feed,share_all,fill=Feed)) +
+  geom_boxplot() + 
+  ggtitle("Chinese Data Feed Type and Shareworthiness Scores (Ordinal)")
+
+boxS3 <- ggplot(Data, aes(Feed, share_all,fill=Feed)) +
+  geom_boxplot() +
+  ggtitle("All Data Feed Type and Shareworthiness Scores (Ordinal)")
+
+grid.arrange(boxS1,boxS2,boxS3,nrow=1)
+
+
+
+#Feed X Crediworthiness
+ViolinC1 <- ggplot(Data_EN, aes(Feed,credavg_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("English Data Feed Type and Creditworthiness Scores")
+
+ViolinC2 <- ggplot(Data_CN, aes(Feed,credavg_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("Chinese Data Feed Type and Creditworthiness Scores")
+
+ViolinC3 <- ggplot(Data, aes(Feed,credavg_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("All Data Feed Type and Creditworthiness Scores")
+
+grid.arrange(ViolinC1,ViolinC2,ViolinC3, nrow=1)
+
+
+#Feed X Shareworthiness
+ViolinS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("English Data Feed Type and Shareworthiness Scores")
+
+ViolinS2 <- ggplot(Data_CN, aes(Feed,share_all,fill=Feed)) + 
+  geom_violin() +
+  ggtitle("English Data Feed Type and Shareworthiness Scores")
+
+ViolinS3 <- ggplot(Data, aes(Feed, share_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("English Data Feed Type and Shareworthiness Scores")
+
+grid.arrange(ViolinS1,ViolinS2,ViolinS3, nrow=1)
+```
+
+#analysis... anova?
+```{r analysis}
+###shareworthiness is binary? ordinal?
+
+##One question rating shareworthiness?
+
+###These ratings just actually measuring the "news" item?
+
+### going to get to this later
+###
+
+```
+
