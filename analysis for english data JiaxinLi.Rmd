@@ -27,18 +27,17 @@ english_data_filtered <- read.csv("ENdata_filtered_110123.csv")
 # Y 
 
 dependent variable: 
-a) credibility  :"Credibility_Total"
-b) newsworthiness  :"newsworth_all"
+
+
+a) credibility  :"credavg_all"
+b) newsworthiness  :"nwavg_all"
 c) shareworthiness  :"share_all"
-
-
 
 
 # fixed factors
 
 "feed_type"
 surrounding content elements and news valence were included as fixed factors
-(将周围内容元素和新闻情感倾向作为固定因子，即要研究的因素)
 
 surrounding content elements:  "feedtype_four"
 news valence:  "feed_valence"
@@ -61,14 +60,14 @@ english_data_filtered$feed_type <- factor(english_data_filtered$feed_type)
 
 
 ```{r}
-boxplot(Credibility_Total ~ feed_type,
+boxplot(credavg_all ~ feed_type,
 data = english_data_filtered,
 main = "credibility by feedtype and news valence (ENdata)",
 xlab = "feedtype",ylab = "Credibility",
 col = "pink",border = "black")
 
 
-boxplot(newsworth_all ~ feed_type,
+boxplot(nwavg_all ~ feed_type,
 data = english_data_filtered,
 main = "newsworthiness by feedtype and news valence (ENdata)",
 xlab = "feedtype",ylab = "newsworthiness",
@@ -141,7 +140,7 @@ The p-value is 0.491 that is greater than 0.05, so the covariate "NewsCred_SMÂ.
 
 ```{r}
 library(car)
-leveneTest(Credibility_Total ~ feed_type, data = english_data_filtered)
+leveneTest(credavg_all ~ feed_type, data = english_data_filtered)
 ```
 
 The p-value of the test is 0.000621, which indicates that the variances among the groups are not equal. It indicates the need to transform the exam variable for the equal group variance.
@@ -153,7 +152,7 @@ The p-value of the test is 0.000621, which indicates that the variances among th
 
 ```{r}
 library(car)
-leveneTest(newsworth_all ~ feed_type, data = english_data_filtered)
+leveneTest(nwavg_all ~ feed_type, data = english_data_filtered)
 
 ```
 
@@ -185,7 +184,7 @@ The p-value of the test is 0.08828 (>0.05), which indicates that the variances a
 
 ```{r}
 library(car)
-ancova_model_credibility <- aov(Credibility_Total ~ feed_type + NewsSharing_SM + NewsCred_SMÂ., data = english_data_filtered)
+ancova_model_credibility <- aov(credavg_all ~ feed_type + NewsSharing_SM + NewsCred_SMÂ., data = english_data_filtered)
 Anova(ancova_model_credibility, type="III")
 ```
 
@@ -196,7 +195,7 @@ Anova(ancova_model_credibility, type="III")
 
 ```{r}
 library(car)
-ancova_model_newsworthiness <- aov(newsworth_all ~ feed_type + NewsSharing_SM + NewsCred_SMÂ., data = english_data_filtered)
+ancova_model_newsworthiness <- aov(nwavg_all ~ feed_type + NewsSharing_SM + NewsCred_SMÂ., data = english_data_filtered)
 Anova(ancova_model_newsworthiness, type="III")
 ```
 

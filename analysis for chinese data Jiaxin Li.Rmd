@@ -24,6 +24,9 @@ unique(chinese_data_filtered$feed_type)
 
 
 
+```{r}
+glimpse(chinese_data_filtered)
+```
 
 
 
@@ -55,6 +58,9 @@ unique(chinese_data_filtered$feed_type)
 
 
 
+```{r}
+colnames(chinese_data_filtered)
+```
 
 
 
@@ -72,8 +78,8 @@ unique(chinese_data_filtered$feed_type)
 # Y 
 
 dependent variable: 
-a) credibility  :"Credibility_Total"
-b) newsworthiness  :"newsworth_all"
+a) credibility  :"credavg_all"
+b) newsworthiness  :"nwavg_all"
 c) shareworthiness  :"share_all"
 
 
@@ -93,14 +99,14 @@ surrounding content elements and news valence were included as fixed factors
 
 
 ```{r}
-boxplot(Credibility_Total ~ feed_type,
+boxplot(credavg_all ~ feed_type,
 data = chinese_data_filtered,
 main = "credibility by feedtype and news valence (ENdata)",
 xlab = "feedtype",ylab = "Credibility",
 col = "pink",border = "black")
 
 
-boxplot(newsworth_all ~ feed_type,
+boxplot(nwavg_all ~ feed_type,
 data = chinese_data_filtered,
 main = "newsworthiness by feedtype and news valence (ENdata)",
 xlab = "feedtype",ylab = "newsworthiness",
@@ -168,7 +174,7 @@ The p-value is 0.32 that is greater than 0.05, so the covariate "NewsCred_SM" an
 
 ```{r}
 library(car)
-leveneTest(Credibility_Total ~ feed_type, data = chinese_data_filtered)
+leveneTest(credavg_all ~ feed_type, data = chinese_data_filtered)
 ```
 
 The p-value of the test is 0.6334 (>0.05), which indicates that the variances among the groups can be regarded as equal.
@@ -179,7 +185,7 @@ The p-value of the test is 0.6334 (>0.05), which indicates that the variances am
 
 ```{r}
 library(car)
-leveneTest(newsworth_all ~ feed_type, data = chinese_data_filtered)
+leveneTest(nwavg_all ~ feed_type, data = chinese_data_filtered)
 
 ```
 
@@ -211,7 +217,7 @@ The p-value of the test is 0.3387 (>0.05), which indicates that the variances am
 
 ```{r}
 library(car)
-ancova_model_credibility <- aov(Credibility_Total ~ feed_type + NewsSharing_SM + NewsCred_SM, data = chinese_data_filtered)
+ancova_model_credibility <- aov(credavg_all ~ feed_type + NewsSharing_SM + NewsCred_SM, data = chinese_data_filtered)
 Anova(ancova_model_credibility, type="III")
 ```
 
@@ -222,7 +228,7 @@ Anova(ancova_model_credibility, type="III")
 
 ```{r}
 library(car)
-ancova_model_newsworthiness <- aov(newsworth_all ~ feed_type + NewsSharing_SM + NewsCred_SM, data = chinese_data_filtered)
+ancova_model_newsworthiness <- aov(nwavg_all ~ feed_type + NewsSharing_SM + NewsCred_SM, data = chinese_data_filtered)
 Anova(ancova_model_newsworthiness, type="III")
 ```
 
