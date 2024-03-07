@@ -107,18 +107,113 @@ ViolinS3 <- ggplot(Data, aes(Feed, share_all,fill=Feed)) +
   ggtitle("English Data Feed Type and Shareworthiness Scores")
 
 grid.arrange(ViolinS1,ViolinS2,ViolinS3, nrow=1)
+
 ```
 
-#analysis... anova?
-```{r analysis}
-###shareworthiness is binary? ordinal?
+# analysis start
 
+## One-way Anovas
+```{r OneWays}
+###shareworthiness is binary? ordinal?
 ##One question rating shareworthiness?
 
-###These ratings just actually measuring the "news" item?
+# Chinese Cred Anova
+ANOVA_Cred_CN <- aov(credavg_all ~ Feed,data=Data_CN)
+summary(ANOVA_Cred_CN)
 
-### going to get to this later
-###
+# English Cred Anova
+ANOVA_Cred_EN <- aov(credavg_all ~ Feed,data=Data_EN)
+summary(ANOVA_Cred_EN)
+
+#---------------------------------------------------------
+# Chinese Newsworthiness Anova
+ANOVA_NW_CN <- aov(nwavg_all ~ Feed,data=Data_CN)
+summary(ANOVA_NW_CN)
+
+# English Newsworthiness Anova
+ANOVA_NW_EN <- aov(nwavg_all ~ Feed,data=Data_EN)
+summary(ANOVA_NW_EN)
+
+#---------------------------------------------------------
+# Chinese Share Anova
+ANOVA_Share_CN <- aov(share_all ~ Feed,data=Data_CN)
+summary(ANOVA_Share_CN)
+
+# English Share Anova
+ANOVA_Share_EN <- aov(share_all ~ Feed,data=Data_EN)
+summary(ANOVA_Share_EN)
+```
+
+# Hypothesis 1
+Memes will produce a greater level of:
+ a) Credibility
+ b) Newsworthiness
+ c) Share-worthiness
+Compared to the news-only feed
+
+## Hypothesis 1 testing
+```{r}
+Hyp1TestData <- Data |> 
+  filter(Feed == 1 | Feed == 2)
+
+C_T_Test <- t.test(credavg_all ~ Feed , data = Hyp1TestData)
+
+NW_T_Test <- t.test(nwavg_all ~ Feed, data = Hyp1TestData)
+
+SW_T_Test <- t.test(share_all ~ Feed, data = Hyp1TestData)
+
+C_T_Test
+
+NW_T_Test
+
+SW_T_Test
+```
+
+
+# Hypothesis 2
+Activism will produce a greater level of:
+  a) Newsworthiness
+  b) Share-worthiness
+Compared with the other 3 feeds
+
+## Hypothesis 2 testing
+```{r}
+#Anova first, followed by separate t-tests w Bonferroni (necessary)?
+```
+
+
+# RQ 1
+How does the activism feed affect perceptions of news credibility compared to the other surrounding content feeds?
+
+# RQ 2
+How does the advertisement feed affect perceptions of:
+  a) Credibility
+  b) Newsworthiness
+  c) Share-worthiness
+compared to the other surrounding content feeds?
+
+# RQ 3
+How does news valence moderate the impact of external content elements on:
+  a) Credibility
+  b) Newsworthiness
+  c) Share-worthiness
+?
+
+# RQ 4
+How do the following vary between the English and Chinese samples?:
+  a) Credibility
+  b) Newsworthiness
+  c) Share-worthiness
+  
+
+## Two-way Anovas?
+```{r}
+
+```
+
+
+##ordinal regression? (if share is not a composite?)
+```{r}
 
 ```
 
