@@ -8,7 +8,6 @@ output:
 ---
 
 #1) make sure assumptions are listed and explained currently
-#2)clevenes'
 #3) final commit + send minh email of pdf
 #4) she will email sejin
 
