@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#packs
+#packages
 ```{r packageload}
 library(readr)
 library(dplyr)
@@ -25,8 +25,8 @@ library(gridExtra)
 CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
 ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
 ```
+
 #data prep
-#    do show=false here?
 ```{r dataprep, echo=FALSE}
 ###need to use cred and nw totals... 
 
@@ -37,14 +37,17 @@ CNdata_filtered_120123$valence <- as.factor(CNdata_filtered_120123$valence)
 
 #Chinese data, selecting relevant variables
 Data_CN <- CNdata_filtered_120123 |> 
-  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,gender,age) |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,NewsSharing_SM,NewsCred_SM,AI_acceptance,gender,age) |> 
   mutate(Group = 1)
+
+#English data, adding/renaming relevant variables
+ENdata_filtered_110123$NewsCred_SM <- unlist(ENdata_filtered_110123[,255])#rename to match CN data
 
 #English data, selecting relevant variables
 Data_EN <-ENdata_filtered_110123 |> 
   dplyr::mutate(valence = feed_valence) |>
   dplyr::mutate(Feed = feedtype_four) |> 
-  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,gender,age) |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,NewsSharing_SM,NewsCred_SM,AI_acceptance,gender,age) |> 
   mutate(Group = 0)
 
 #English data, changing data types to factors
@@ -60,6 +63,8 @@ Data$age <- 2024 - Data$age
 Data$gender <- as.factor(Data$gender)
 
 #can select additional variables for regression, these were just the ones that stuck out as easy to add
+
+##AI acceptance only for EN data??
 ```
 
 #some plots
@@ -121,11 +126,18 @@ Memes will produce a greater level of:
  a) Credibility
  b) Newsworthiness
  c) Share-worthiness
-Compared to the news-only feed
+Compared to the news-only feed.
 
 ## Hypothesis 1 testing
-```{r}
 
+To test this hypothesis, 3 separate t-tests will be used to compare -- between the participants in the meme and news-only feeds -- the scores of each of these three measurements.
+
+### H1 Assumption checking
+
+
+
+### H1 T-tests + Regression
+```{r}
 ### T-tests
 # 1 = Memes 2 = News-only
 Hyp1TestData <- Data |> 
@@ -142,7 +154,6 @@ C_T_Test
 NW_T_Test
 
 SW_T_Test
-
 
 ### Regression
 
@@ -164,9 +175,9 @@ summary(LR_Newsworthiness_All)
 
 broom::tidy(LR_Credibility_All)
 
-broom::tidy(LR_Shareworthiness_All)
-
 broom::tidy(LR_Newsworthiness_All)
+
+broom::tidy(LR_Shareworthiness_All)
 
 ```
 
@@ -181,11 +192,13 @@ Compared with the other 3 feeds
 ```{r}
 #Anova first, followed by separate t-tests w Bonferroni (necessary)?
 
+
+
 ```
 
-## Analysis start
+### H2 Assumption checking
 
-## One-way Anovas
+### One-way Anovas
 ```{r OneWays}
 # Chinese Cred Anova
 ANOVA_Cred_CN <- aov(credavg_all ~ Feed,data=Data_CN)
@@ -223,7 +236,6 @@ summary(ANOVA_Share_EN)
 
 ```
 
-
 ```{r homogeneity of variance}
 ###Use Levene's
 library(car)
@@ -239,8 +251,6 @@ leveneTest(nwavg_all~Feed,data=Data)
 
 
 # before combining the two, need to make sure the test can handle unequal sample sizes between the english and the chinese... if not, use Kruskal-Wallis
-
-
 
 
 # RQ 1
@@ -271,10 +281,3 @@ How do the following vary between the English and Chinese samples?:
 ```{r}
 
 ```
-
-
-##ordinal regression? (if share is not a composite?)
-```{r}
-
-```
-
