@@ -1,7 +1,7 @@
 ---
-title: "Sejin Data Check"
+title: "Sejin Project Report"
 author: "Group 2"
-date: "2024-03-01"
+date: "2024-03-08"
 output:
   pdf_document: default
   html_document: default
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #Packages
-```{r packageload}
+```{r packageload,echo=FALSE}
 library(readr)
 library(dplyr)
 library(car)
@@ -21,7 +21,7 @@ library(gridExtra)
 ```
 
 #Data loading
-```{r dataload}
+```{r dataload,echo=FALSE}
 CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
 ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
 ```
@@ -67,9 +67,8 @@ Data$gender <- as.factor(Data$gender)
 ##AI acceptance only for EN data??
 ```
 
-#some plots
+#Some plots
 ```{r plots}
-
 #Feed X Shareworthiness (ordinal, so boxplot)
 boxS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
   geom_boxplot() + 
@@ -130,74 +129,22 @@ Compared to the news-only feed.
 
 ## Hypothesis 1 testing
 
-To test this hypothesis, 3 separate t-tests will be used to compare -- between the participants in the meme and news-only feeds -- the scores of each of these three measurements.
+To test this hypothesis, 3 separate t-tests will be used to compare -- between the participants in the meme and news-only feeds -- the scores of each of these three measurements.Regression will also be performed to include other co-variates that the client believes may affect participants' responses.
 
 ### H1 Assumption checking
 
-```{r}
+1 & 2) Independence and Randomness
+Since participants were randomly assigned to the conditions and only have a single observation, we know that assumptions of randomness and independence are met.
 
-# A) visuals for English Data normality checking
+3) Normality
+First, 
+```{r Normality}
 
-# Credibility
-res_cred_EN <- aov(credavg_all~Feed,Data_EN)
-par(mfrow=c(1,2))
-hist(res_cred_EN$residuals)
-qqPlot(res_cred_EN$residuals,id=FALSE)
-
-# Newsworthiness
-res_NW_EN <- aov(nwavg_all~Feed,Data_EN)
-par(mfrow=c(1,2))
-hist(res_NW_EN$residuals)
-qqPlot(res_NW_EN$residuals,id=FALSE)
-
-# Shareworthiness
-res_SW_EN <- aov(credavg_all~Feed,Data_EN)
-par(mfrow=c(1,2))
-hist(res_cred_EN$residuals)
-qqPlot(res_cred_EN$residuals,id=FALSE)
+```
 
 
-# A) visuals for Chinese Data normality checking
-
-# Credibility
-res_cred_CN <- aov(credavg_all~Feed,Data_CN)
-par(mfrow=c(1,2))
-hist(res_cred_CN$residuals)
-qqPlot(res_cred_CN$residuals,id=FALSE)
-
-# Newsworthiness
-res_NW_CN <- aov(nwavg_all~Feed,Data_CN)
-par(mfrow=c(1,2))
-hist(res_NW_CN$residuals)
-qqPlot(res_NW_CN$residuals,id=FALSE)
-
-# Shareworthiness
-res_SW_EN <- aov(credavg_all~Feed,Data_CN)
-par(mfrow=c(1,2))
-hist(res_cred_CN$residuals)
-qqPlot(res_cred_CN$residuals,id=FALSE)
-
-
-# A) visuals for Combined Data normality checking
-
-# Credibility
-res_cred_Data <- aov(credavg_all~Feed,Data)
-par(mfrow=c(1,2))
-hist(res_cred_Data$residuals)
-qqPlot(res_cred_Data$residuals,id=FALSE)
-
-# Newsworthiness
-res_NW_Data <- aov(nwavg_all~Feed,Data)
-par(mfrow=c(1,2))
-hist(res_NW_EN$residuals)
-qqPlot(res_NW_EN$residuals,id=FALSE)
-
-# Shareworthiness
-res_SW_Data <- aov(credavg_all~Feed,Data)
-par(mfrow=c(1,2))
-hist(res_cred_Data$residuals)
-qqPlot(res_cred_Data$residuals,id=FALSE)
-
+4) Homogeneity of Variances
+```{r T-Test Assumption Check}
 
 ```
 
@@ -252,8 +199,80 @@ broom::tidy(LR_Shareworthiness_All)
 Activism will produce a greater level of:
   a) Newsworthiness
   b) Share-worthiness
-Compared with the other 3 feeds
+Compared with the other 3 feeds.
 
+This hypothesis was tested with ANOVAs/ANCOVAs. However, the client requested that the assumptions for these tests be repeated in order to make sure that these tests were appropriate.
+
+## H2 Assumption checking
+The first assumption to be checked was the normality of residuals.This assumption was checked for the Chinese and English datasets individually, since the client ran the tests on each sample separately; the assumption was also checked for the combined dataset, since it is seemed appropriate to check given that the data for the two groups are capable of being combined and the pertinent hypothesis does not explicitly reference a distinction between the two.
+
+```{r residual normality, echo=FALSE}
+#Residual Check for the 3 main outcome variables for the English data only
+
+# Credibility
+res_cred_EN <- aov(credavg_all~Feed,Data_EN)
+# Newsworthiness
+res_NW_EN <- aov(nwavg_all~Feed,Data_EN)
+# Shareworthiness
+res_SW_EN <- aov(credavg_all~Feed,Data_EN)
+
+#Residual Check for the 3 main outcome variables for the Chinese data only
+
+# Credibility
+res_cred_CN <- aov(credavg_all~Feed,Data_CN)
+# Newsworthiness
+res_NW_CN <- aov(nwavg_all~Feed,Data_CN)
+# Shareworthiness
+res_SW_CN <- aov(credavg_all~Feed,Data_CN)
+
+# Residual Check for the 3 main outcome variables for the combined data
+
+# Credibility
+res_cred_Data <- aov(credavg_all~Feed,Data)
+# Newsworthiness
+res_NW_Data <- aov(nwavg_all~Feed,Data)
+# Shareworthiness
+res_SW_Data <- aov(credavg_all~Feed,Data)
+
+```
+
+
+```{r normality plots}
+# English only
+
+#plots, histogram and QQ
+par(mfrow=c(2,3))
+hist(res_cred_EN$residuals)
+hist(res_NW_EN$residuals)
+hist(res_SW_EN$residuals)
+qqPlot(res_cred_EN$residuals,id=FALSE)
+qqPlot(res_NW_EN$residuals,id=FALSE)
+qqPlot(res_SW_EN$residuals,id=FALSE)
+
+
+# Chinese only
+
+#plots, histogram and QQ
+par(mfrow=c(2,3))
+hist(res_cred_CN$residuals)
+hist(res_NW_CN$residuals)
+hist(res_SW_CN$residuals)
+qqPlot(res_cred_CN$residuals,id=FALSE)
+qqPlot(res_NW_CN$residuals,id=FALSE)
+qqPlot(res_SW_CN$residuals,id=FALSE)
+
+
+##combined
+
+#plots, histogram and QQ
+par(mfrow=c(2,3))
+hist(res_cred_Data$residuals)
+hist(res_NW_Data$residuals)
+hist(res_SW_Data$residuals)
+qqPlot(res_cred_Data$residuals,id=FALSE)
+qqPlot(res_NW_Data$residuals,id=FALSE)
+qqPlot(res_SW_Data$residuals,id=FALSE)
+```
 ## Hypothesis 2 testing
 ```{r}
 #Anova first, followed by separate t-tests w Bonferroni (necessary)?
@@ -262,7 +281,6 @@ Compared with the other 3 feeds
 
 ```
 
-### H2 Assumption checking
 
 ### One-way Anovas
 ```{r OneWays}
@@ -292,7 +310,6 @@ summary(ANOVA_Share_CN)
 ANOVA_Share_EN <- aov(share_all ~ Feed,data=Data_EN)
 summary(ANOVA_Share_EN)
 ```
-
 
 ##ANCOVA
 
