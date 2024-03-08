@@ -7,11 +7,33 @@ output:
   html_document: default
 ---
 
+#1) make sure assumptions are listed and explained currently
+#2)clevenes'
+#3) final commit + send minh email of pdf
+#4) she will email sejin
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Packages
+#1 Introduction
+
+Sejin Paik is a graduate student in the Boston University College of Communication Division of Emerging Media Studies. In a pilot study, Reframing the News Through Social Media Curation Design, she aims to explore the potential impacts of social media feed curation on users’ perceptions of news items and use the results to help with dissertation. Her research questions were the following: 
+How does the activism feed affect perceptions of news credibility compared to the other surrounding-content newsfeeds?
+How does the advertisement feed affect perceptions of a) news credibility, b) newsworthiness and c) shareworthiness of the news compared to the other surrounding-content newsfeeds?
+How does news valence moderate the impact of external content elements on a) news credibility, b) newsworthiness, and c) shareworthiness? 
+How do perceptions of news credibility, newsworthiness and shareworthiness in different curated newsfeeds vary between American and Chinese participants? 
+From those questions, she formulated two main hypotheses. 
+Memes will produce a greater level of a) credibility, b) newsworthiness, and c) shareworthiness perceptions of the news compared to the news-only newsfeed.
+Activism will produce a greater level of a) newsworthiness and b) shareworthiness perception of the news compared to the other content surrounding newsfeeds.
+
+Sejin’s data came from two different samples. The first sample was composed of 661 participants from the United States and the second sample was composed of 484 participants from China. Participants in both samples were randomly assigned to one of eight conditions according to a 4 by 2 factorial design. There were two independent variables, one with four levels and a second with two levels. The first independent variable was feed content type, which was one of the following: activism, advertisements, memes, and news. The second independent variable was story valence, which was either positive or negative. She also provided a copy of the manuscript for her paper, which included some of her background research and hypotheses, a copy of the survey that was distributed to the participants, and the SPSS output for her analyses.
+
+Each newsfeed condition consists of seven posts: a positive or negative news story positioned fourth in the vertical newsfeed stack, surrounded by one of four content elements (memes, ads, activism, or additional news stories). The feeds were presented with topic filtering to reduce potential confounding variables and the topic is about artificial intelligence (AI), a relatively politically neutral subject.
+
+The client requested assistance with a few tasks. First, she requested a duplication of ANOVA and ANCOVA tests that were performed to test her hypotheses to ensure that accurate results were obtained. Second, she requested that the results of the assumption checking be verified, as well as assistance with potentially modifying the analysis depending on whether the appropriate assumptions were met. Third, she asked that if there any potentially alternative or additional methods of analysis that might be more appropriate to answer her hypotheses and research questions, that those be recommended to her.
+
+# Packages
 ```{r packageload,echo=FALSE}
 library(readr)
 library(dplyr)
@@ -20,13 +42,17 @@ library(ggplot2)
 library(gridExtra)
 ```
 
-#Data loading
+# Data loading
 ```{r dataload,echo=FALSE}
 CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
 ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
 ```
 
-#Data prep
+#2 Data preparation
+The surveys were administered to participants via Qualtrics and delivered to the consulting group as two separate .csv files, one for the American sample and one for the Chinese sample. They both contained variables such as the feed content and valence conditions the participants were assigned to, ratings of news credibility, ratings of newsworthiness, and ratings of news shareworthiness.
+
+One of the main steps required as part of the data preparation was standardizing the labels for the main variables of interest in the data, since there were some labeling discrepancies between the two datasets. A second step involved changing certain variables to the appropriate data classes. For example, the “valence” variable had to be changed from numeric to factor. The next step was to filter the relevant variables for the analysis from each of the datasets to include in the analysis; both sets included hundreds of columns, many of which were unrelated to the relevant objectives. The final step involved combining the American and Chinese datasets to form a cohesive dataset that would allow for the analysis to be performed.
+
 ```{r dataprep, echo=FALSE}
 ###need to use cred and nw totals... 
 
@@ -37,7 +63,7 @@ CNdata_filtered_120123$valence <- as.factor(CNdata_filtered_120123$valence)
 
 #Chinese data, selecting relevant variables
 Data_CN <- CNdata_filtered_120123 |> 
-  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,NewsSharing_SM,NewsCred_SM,AI_acceptance,gender,age) |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age) |> 
   mutate(Group = 1)
 
 #English data, adding/renaming relevant variables
@@ -47,7 +73,7 @@ ENdata_filtered_110123$NewsCred_SM <- unlist(ENdata_filtered_110123[,255])#renam
 Data_EN <-ENdata_filtered_110123 |> 
   dplyr::mutate(valence = feed_valence) |>
   dplyr::mutate(Feed = feedtype_four) |> 
-  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,NewsSharing_SM,NewsCred_SM,AI_acceptance,gender,age) |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age) |> 
   mutate(Group = 0)
 
 #English data, changing data types to factors
@@ -67,8 +93,10 @@ Data$gender <- as.factor(Data$gender)
 ##AI acceptance only for EN data??
 ```
 
-#Some plots
-```{r plots}
+
+#3 Analysis
+
+```{r plots,echo=FALSE}
 #Feed X Shareworthiness (ordinal, so boxplot)
 boxS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
   geom_boxplot() + 
@@ -86,7 +114,7 @@ grid.arrange(boxS1,boxS2,boxS3,nrow=1)
 
 #------------------------------------------------------------------------------
 
-#Feed X Crediworthiness
+#Feed X Creditworthiness
 ViolinC1 <- ggplot(Data_EN, aes(Feed,credavg_all,fill=Feed)) +
   geom_violin() +
   ggtitle("English Data Feed Type and Creditworthiness Scores")
@@ -110,87 +138,13 @@ ViolinS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
 
 ViolinS2 <- ggplot(Data_CN, aes(Feed,share_all,fill=Feed)) + 
   geom_violin() +
-  ggtitle("English Data Feed Type and Shareworthiness Scores")
+  ggtitle("Chinese Data Feed Type and Shareworthiness Scores")
 
 ViolinS3 <- ggplot(Data, aes(Feed, share_all,fill=Feed)) +
   geom_violin() +
-  ggtitle("English Data Feed Type and Shareworthiness Scores")
+  ggtitle("All Data Feed Type and Shareworthiness Scores")
 
 grid.arrange(ViolinS1,ViolinS2,ViolinS3, nrow=1)
-
-```
-
-# Hypothesis 1
-Memes will produce a greater level of:
- a) Credibility
- b) Newsworthiness
- c) Share-worthiness
-Compared to the news-only feed.
-
-## Hypothesis 1 testing
-
-To test this hypothesis, 3 separate t-tests will be used to compare -- between the participants in the meme and news-only feeds -- the scores of each of these three measurements.Regression will also be performed to include other co-variates that the client believes may affect participants' responses.
-
-### H1 Assumption checking
-
-1 & 2) Independence and Randomness
-Since participants were randomly assigned to the conditions and only have a single observation, we know that assumptions of randomness and independence are met.
-
-3) Normality
-First, 
-```{r Normality}
-
-```
-
-
-4) Homogeneity of Variances
-```{r T-Test Assumption Check}
-
-```
-
-
-### H1 T-tests + Regression
-```{r}
-### T-tests
-# 1 = Memes 2 = News-only
-Hyp1TestData <- Data |> 
-  filter(Feed == 1 | Feed == 2)
-
-C_T_Test <- t.test(credavg_all ~ Feed , data = Hyp1TestData)
-
-NW_T_Test <- t.test(nwavg_all ~ Feed, data = Hyp1TestData)
-
-SW_T_Test <- t.test(share_all ~ Feed, data = Hyp1TestData)
-
-C_T_Test
-
-NW_T_Test
-
-SW_T_Test
-
-### Regression
-
-#Regression for Credibility
-LR_Credibility_All <- lm(credavg_all ~ Feed + valence + Group,Data)
-
-summary(LR_Credibility_All)
-
-#Regression for Share-worthiness
-LR_Shareworthiness_All <- lm(share_all ~ Feed + valence + Group,Data)
-
-summary(LR_Shareworthiness_All)
-
-#Regression for Newsworthiness
-
-LR_Newsworthiness_All <- lm(nwavg_all ~ Feed + valence + Group,Data)
-
-summary(LR_Newsworthiness_All)
-
-broom::tidy(LR_Credibility_All)
-
-broom::tidy(LR_Newsworthiness_All)
-
-broom::tidy(LR_Shareworthiness_All)
 
 ```
 
@@ -201,10 +155,11 @@ Activism will produce a greater level of:
   b) Share-worthiness
 Compared with the other 3 feeds.
 
-This hypothesis was tested with ANOVAs/ANCOVAs. However, the client requested that the assumptions for these tests be repeated in order to make sure that these tests were appropriate.
+This hypothesis was originally tested with ANCOVAs, with the feed content types and valences treated as independent variables and the following items as covariates: participants' frequency of sharing news posts on social media, attitudes on technology's impact (positive or negative) on society, and feelings toward AI automation. However, the client requested that the assumptions for these tests be repeated in order to make sure that these tests were appropriate.
 
-## H2 Assumption checking
-The first assumption to be checked was the normality of residuals.This assumption was checked for the Chinese and English datasets individually, since the client ran the tests on each sample separately; the assumption was also checked for the combined dataset, since it is seemed appropriate to check given that the data for the two groups are capable of being combined and the pertinent hypothesis does not explicitly reference a distinction between the two.
+## Hypothesis 2 Assumption checks
+
+The first assumption to be checked was the normality of residuals.This assumption was for the Chinese and English datasets individually, since the client ran the tests on each sample separately; these assumption checks were repeated. The assumption was also checked for the combined dataset, since it is appropriate to check given that the data for the two groups were capable of being combined and the pertinent hypothesis does not explicitly reference a distinction between the two groups. The assumption was also checked for the Credibility measure, since this is required for some of the tests performed later in the analysis.First, visuals were created:
 
 ```{r residual normality, echo=FALSE}
 #Residual Check for the 3 main outcome variables for the English data only
@@ -237,7 +192,7 @@ res_SW_Data <- aov(credavg_all~Feed,Data)
 ```
 
 
-```{r normality plots}
+```{r normality plots,echo=FALSE}
 # English only
 
 #plots, histogram and QQ
@@ -262,7 +217,7 @@ qqPlot(res_NW_CN$residuals,id=FALSE)
 qqPlot(res_SW_CN$residuals,id=FALSE)
 
 
-##combined
+# combined
 
 #plots, histogram and QQ
 par(mfrow=c(2,3))
@@ -273,53 +228,18 @@ qqPlot(res_cred_Data$residuals,id=FALSE)
 qqPlot(res_NW_Data$residuals,id=FALSE)
 qqPlot(res_SW_Data$residuals,id=FALSE)
 ```
-## Hypothesis 2 testing
-```{r}
-#Anova first, followed by separate t-tests w Bonferroni (necessary)?
 
-
-
+As is shown in the plots above,the residuals look skewed in opposite directions for the English and Chinese datasets for all three outcomes of interest. However, they appear uniformly distributed when the data are combined. Next, normality of the dependent variables was formally tested with the Shapiro-Wilk Test.
+```{r SW,echo=FALSE}
+shapiro.test(res_cred_Data$residuals)
+shapiro.test(res_NW_Data$residuals)
+shapiro.test(res_SW_Data$residuals)
 ```
 
 
-### One-way Anovas
-```{r OneWays}
-# Chinese Cred Anova
-ANOVA_Cred_CN <- aov(credavg_all ~ Feed,data=Data_CN)
-summary(ANOVA_Cred_CN)
+Another assumption that had to be checked was the homogeneity of variance. Levene's Test was performed to verify that this assumption holds true across the four feed conditions and the two valence conditions.
 
-# English Cred Anova
-ANOVA_Cred_EN <- aov(credavg_all ~ Feed,data=Data_EN)
-summary(ANOVA_Cred_EN)
-
-#---------------------------------------------------------
-# Chinese Newsworthiness Anova
-ANOVA_NW_CN <- aov(nwavg_all ~ Feed,data=Data_CN)
-summary(ANOVA_NW_CN)
-
-# English Newsworthiness Anova
-ANOVA_NW_EN <- aov(nwavg_all ~ Feed,data=Data_EN)
-summary(ANOVA_NW_EN)
-
-#---------------------------------------------------------
-# Chinese Share Anova
-ANOVA_Share_CN <- aov(share_all ~ Feed,data=Data_CN)
-summary(ANOVA_Share_CN)
-
-# English Share Anova
-ANOVA_Share_EN <- aov(share_all ~ Feed,data=Data_EN)
-summary(ANOVA_Share_EN)
-```
-
-##ANCOVA
-
-###Assumption checks
-
-```{r independence}
-
-```
-
-```{r homogeneity of variance}
+```{r homogeneity of variance, echo=FALSE}
 ###Use Levene's
 library(car)
 
@@ -328,39 +248,41 @@ leveneTest(nwavg_all~Feed,data=Data_EN)
 leveneTest(nwavg_all~Feed,data=Data_CN)
 leveneTest(nwavg_all~Feed,data=Data)
 
-###shareworthiness...
+##shareworthiness...
+leveneTest(share_all~Feed,data=Data_EN)
+leveneTest(share_all~Feed,data=Data_CN)
+leveneTest(share_all~Feed,data=Data)
+
+
+##creditworthiness...
+leveneTest(credavg_all~Feed,data=Data_EN)
+leveneTest(credavg_all~Feed,data=Data_CN)
+leveneTest(credavg_all~Feed,data=Data)
+
+##-------------------------------------------
+
+#valence
+
+#newsworthiness
+leveneTest(nwavg_all~valence,data=Data_EN)
+leveneTest(nwavg_all~valence,data=Data_CN)
+leveneTest(nwavg_all~valence,data=Data)
+
+##shareworthiness...
+leveneTest(share_all~valence,data=Data_EN)
+leveneTest(share_all~valence,data=Data_CN)
+leveneTest(share_all~valence,data=Data)
+
+##creditworthiness...
+leveneTest(credavg_all~valence,data=Data_EN)
+leveneTest(credavg_all~valence,data=Data_CN)
+leveneTest(credavg_all~valence,data=Data)
+
 
 ```
 
 
-# before combining the two, need to make sure the test can handle unequal sample sizes between the english and the chinese... if not, use Kruskal-Wallis
+#4 Conclusions
 
+The assumptions for the tests utilized were not met in all cases. Assumptions of normality for the outcomes of interest were not met. This means that alternative tests are required for some of the hypothesis testing and to answer the research questions appropriately. An additional problem identified was that 
 
-# RQ 1
-How does the activism feed affect perceptions of news credibility compared to the other surrounding content feeds?
-
-# RQ 2
-How does the advertisement feed affect perceptions of:
-  a) Credibility
-  b) Newsworthiness
-  c) Share-worthiness
-compared to the other surrounding content feeds?
-
-# RQ 3
-How does news valence moderate the impact of external content elements on:
-  a) Credibility
-  b) Newsworthiness
-  c) Share-worthiness
-?
-
-# RQ 4
-How do the following vary between the English and Chinese samples?:
-  a) Credibility
-  b) Newsworthiness
-  c) Share-worthiness
-  
-
-## Two-way Anovas?
-```{r}
-
-```
