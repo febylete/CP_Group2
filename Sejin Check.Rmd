@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#packages
+#Packages
 ```{r packageload}
 library(readr)
 library(dplyr)
@@ -20,13 +20,13 @@ library(ggplot2)
 library(gridExtra)
 ```
 
-#data load
+#Data loading
 ```{r dataload}
 CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
 ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
 ```
 
-#data prep
+#Data prep
 ```{r dataprep, echo=FALSE}
 ###need to use cred and nw totals... 
 
@@ -134,6 +134,72 @@ To test this hypothesis, 3 separate t-tests will be used to compare -- between t
 
 ### H1 Assumption checking
 
+```{r}
+
+# A) visuals for English Data normality checking
+
+# Credibility
+res_cred_EN <- aov(credavg_all~Feed,Data_EN)
+par(mfrow=c(1,2))
+hist(res_cred_EN$residuals)
+qqPlot(res_cred_EN$residuals,id=FALSE)
+
+# Newsworthiness
+res_NW_EN <- aov(nwavg_all~Feed,Data_EN)
+par(mfrow=c(1,2))
+hist(res_NW_EN$residuals)
+qqPlot(res_NW_EN$residuals,id=FALSE)
+
+# Shareworthiness
+res_SW_EN <- aov(credavg_all~Feed,Data_EN)
+par(mfrow=c(1,2))
+hist(res_cred_EN$residuals)
+qqPlot(res_cred_EN$residuals,id=FALSE)
+
+
+# A) visuals for Chinese Data normality checking
+
+# Credibility
+res_cred_CN <- aov(credavg_all~Feed,Data_CN)
+par(mfrow=c(1,2))
+hist(res_cred_CN$residuals)
+qqPlot(res_cred_CN$residuals,id=FALSE)
+
+# Newsworthiness
+res_NW_CN <- aov(nwavg_all~Feed,Data_CN)
+par(mfrow=c(1,2))
+hist(res_NW_CN$residuals)
+qqPlot(res_NW_CN$residuals,id=FALSE)
+
+# Shareworthiness
+res_SW_EN <- aov(credavg_all~Feed,Data_CN)
+par(mfrow=c(1,2))
+hist(res_cred_CN$residuals)
+qqPlot(res_cred_CN$residuals,id=FALSE)
+
+
+# A) visuals for Combined Data normality checking
+
+# Credibility
+res_cred_Data <- aov(credavg_all~Feed,Data)
+par(mfrow=c(1,2))
+hist(res_cred_Data$residuals)
+qqPlot(res_cred_Data$residuals,id=FALSE)
+
+# Newsworthiness
+res_NW_Data <- aov(nwavg_all~Feed,Data)
+par(mfrow=c(1,2))
+hist(res_NW_EN$residuals)
+qqPlot(res_NW_EN$residuals,id=FALSE)
+
+# Shareworthiness
+res_SW_Data <- aov(credavg_all~Feed,Data)
+par(mfrow=c(1,2))
+hist(res_cred_Data$residuals)
+qqPlot(res_cred_Data$residuals,id=FALSE)
+
+
+```
 
 
 ### H1 T-tests + Regression
