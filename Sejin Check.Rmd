@@ -2,7 +2,9 @@
 title: "Sejin Data Check"
 author: "Group 2"
 date: "2024-03-01"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -13,6 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r packageload}
 library(readr)
 library(dplyr)
+library(car)
+library(ggplot2)
+library(gridExtra)
 ```
 
 #data load
@@ -21,7 +26,10 @@ CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
 ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
 ```
 #data prep
-```{r dataprep}
+#    do show=false here?
+```{r dataprep, echo=FALSE}
+###need to use cred and nw totals... 
+
 #Chinese data, renaming/changing data types to factors
 CNdata_filtered_120123$Feed <- CNdata_filtered_120123$feed_typefour
 CNdata_filtered_120123$Feed <- as.factor(CNdata_filtered_120123$Feed)
@@ -56,9 +64,6 @@ Data$gender <- as.factor(Data$gender)
 
 #some plots
 ```{r plots}
-library(ggplot2)
-library(gridExtra)
-
 
 #Feed X Shareworthiness (ordinal, so boxplot)
 boxS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
@@ -75,7 +80,7 @@ boxS3 <- ggplot(Data, aes(Feed, share_all,fill=Feed)) +
 
 grid.arrange(boxS1,boxS2,boxS3,nrow=1)
 
-
+#------------------------------------------------------------------------------
 
 #Feed X Crediworthiness
 ViolinC1 <- ggplot(Data_EN, aes(Feed,credavg_all,fill=Feed)) +
@@ -92,6 +97,7 @@ ViolinC3 <- ggplot(Data, aes(Feed,credavg_all,fill=Feed)) +
 
 grid.arrange(ViolinC1,ViolinC2,ViolinC3, nrow=1)
 
+#------------------------------------------------------------------------------
 
 #Feed X Shareworthiness
 ViolinS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
@@ -110,13 +116,77 @@ grid.arrange(ViolinS1,ViolinS2,ViolinS3, nrow=1)
 
 ```
 
-# analysis start
+# Hypothesis 1
+Memes will produce a greater level of:
+ a) Credibility
+ b) Newsworthiness
+ c) Share-worthiness
+Compared to the news-only feed
+
+## Hypothesis 1 testing
+```{r}
+
+### T-tests
+# 1 = Memes 2 = News-only
+Hyp1TestData <- Data |> 
+  filter(Feed == 1 | Feed == 2)
+
+C_T_Test <- t.test(credavg_all ~ Feed , data = Hyp1TestData)
+
+NW_T_Test <- t.test(nwavg_all ~ Feed, data = Hyp1TestData)
+
+SW_T_Test <- t.test(share_all ~ Feed, data = Hyp1TestData)
+
+C_T_Test
+
+NW_T_Test
+
+SW_T_Test
+
+
+### Regression
+
+#Regression for Credibility
+LR_Credibility_All <- lm(credavg_all ~ Feed + valence + Group,Data)
+
+summary(LR_Credibility_All)
+
+#Regression for Share-worthiness
+LR_Shareworthiness_All <- lm(share_all ~ Feed + valence + Group,Data)
+
+summary(LR_Shareworthiness_All)
+
+#Regression for Newsworthiness
+
+LR_Newsworthiness_All <- lm(nwavg_all ~ Feed + valence + Group,Data)
+
+summary(LR_Newsworthiness_All)
+
+broom::tidy(LR_Credibility_All)
+
+broom::tidy(LR_Shareworthiness_All)
+
+broom::tidy(LR_Newsworthiness_All)
+
+```
+
+
+# Hypothesis 2
+Activism will produce a greater level of:
+  a) Newsworthiness
+  b) Share-worthiness
+Compared with the other 3 feeds
+
+## Hypothesis 2 testing
+```{r}
+#Anova first, followed by separate t-tests w Bonferroni (necessary)?
+
+```
+
+## Analysis start
 
 ## One-way Anovas
 ```{r OneWays}
-###shareworthiness is binary? ordinal?
-##One question rating shareworthiness?
-
 # Chinese Cred Anova
 ANOVA_Cred_CN <- aov(credavg_all ~ Feed,data=Data_CN)
 summary(ANOVA_Cred_CN)
@@ -144,42 +214,33 @@ ANOVA_Share_EN <- aov(share_all ~ Feed,data=Data_EN)
 summary(ANOVA_Share_EN)
 ```
 
-# Hypothesis 1
-Memes will produce a greater level of:
- a) Credibility
- b) Newsworthiness
- c) Share-worthiness
-Compared to the news-only feed
 
-## Hypothesis 1 testing
-```{r}
-Hyp1TestData <- Data |> 
-  filter(Feed == 1 | Feed == 2)
+##ANCOVA
 
-C_T_Test <- t.test(credavg_all ~ Feed , data = Hyp1TestData)
+###Assumption checks
 
-NW_T_Test <- t.test(nwavg_all ~ Feed, data = Hyp1TestData)
+```{r independence}
 
-SW_T_Test <- t.test(share_all ~ Feed, data = Hyp1TestData)
-
-C_T_Test
-
-NW_T_Test
-
-SW_T_Test
 ```
 
 
-# Hypothesis 2
-Activism will produce a greater level of:
-  a) Newsworthiness
-  b) Share-worthiness
-Compared with the other 3 feeds
+```{r homogeneity of variance}
+###Use Levene's
+library(car)
 
-## Hypothesis 2 testing
-```{r}
-#Anova first, followed by separate t-tests w Bonferroni (necessary)?
+##newsworthiness... p > .05 for all three partitions of the data, so no concerns about heterogeneity of variance for newsworthiness across the 4 different feed types
+leveneTest(nwavg_all~Feed,data=Data_EN)
+leveneTest(nwavg_all~Feed,data=Data_CN)
+leveneTest(nwavg_all~Feed,data=Data)
+
+###shareworthiness...
+
 ```
+
+
+# before combining the two, need to make sure the test can handle unequal sample sizes between the english and the chinese... if not, use Kruskal-Wallis
+
+
 
 
 # RQ 1
