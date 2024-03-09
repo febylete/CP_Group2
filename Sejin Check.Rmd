@@ -1,15 +1,11 @@
 ---
-title: "Sejin Project Report"
+title: "Initial Project Report"
 author: "Group 2"
 date: "2024-03-08"
 output:
   pdf_document: default
   html_document: default
 ---
-
-#1) make sure assumptions are listed and explained currently
-#3) final commit + send minh email of pdf
-#4) she will email sejin
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -88,8 +84,6 @@ Data$age <- 2024 - Data$age
 Data$gender <- as.factor(Data$gender)
 
 #can select additional variables for regression, these were just the ones that stuck out as easy to add
-
-##AI acceptance only for EN data??
 ```
 
 
@@ -236,52 +230,51 @@ shapiro.test(res_SW_Data$residuals)
 ```
 
 
-Another assumption that had to be checked was the homogeneity of variance. Levene's Test was performed to verify that this assumption holds true across the four feed conditions and the two valence conditions.
+Another assumption that had to be checked was the homogeneity of variance. Levene's Test was performed to verify that this assumption holds true across the four feed conditions and the two valence conditions; it was applied for both the English and Chinese datasets, to replicate what the client did, and also for the combined data, to help inform the next steps for analysis.
 
 ```{r homogeneity of variance, echo=FALSE}
 ###Use Levene's
 library(car)
 
 ##newsworthiness... p > .05 for all three partitions of the data, so no concerns about heterogeneity of variance for newsworthiness across the 4 different feed types
-leveneTest(nwavg_all~Feed,data=Data_EN)
-leveneTest(nwavg_all~Feed,data=Data_CN)
-leveneTest(nwavg_all~Feed,data=Data)
+leveneTest(nwavg_all~Feed,data=Data_EN) #passed
+leveneTest(nwavg_all~Feed,data=Data_CN) #passed
+leveneTest(nwavg_all~Feed,data=Data) #passed
 
 ##shareworthiness...
-leveneTest(share_all~Feed,data=Data_EN)
-leveneTest(share_all~Feed,data=Data_CN)
-leveneTest(share_all~Feed,data=Data)
+leveneTest(share_all~Feed,data=Data_EN) #failed X
+leveneTest(share_all~Feed,data=Data_CN) #passed
+leveneTest(share_all~Feed,data=Data) #passed
 
 
 ##creditworthiness...
-leveneTest(credavg_all~Feed,data=Data_EN)
-leveneTest(credavg_all~Feed,data=Data_CN)
-leveneTest(credavg_all~Feed,data=Data)
+leveneTest(credavg_all~Feed,data=Data_EN) #failed X
+leveneTest(credavg_all~Feed,data=Data_CN) #passed
+leveneTest(credavg_all~Feed,data=Data) #passed
 
-##-------------------------------------------
+#-------------------------------------------
 
 #valence
 
 #newsworthiness
-leveneTest(nwavg_all~valence,data=Data_EN)
-leveneTest(nwavg_all~valence,data=Data_CN)
-leveneTest(nwavg_all~valence,data=Data)
+leveneTest(nwavg_all~valence,data=Data_EN) #failed X
+leveneTest(nwavg_all~valence,data=Data_CN) #passed
+leveneTest(nwavg_all~valence,data=Data) # failed X
 
 ##shareworthiness...
-leveneTest(share_all~valence,data=Data_EN)
-leveneTest(share_all~valence,data=Data_CN)
-leveneTest(share_all~valence,data=Data)
+leveneTest(share_all~valence,data=Data_EN) # passed 
+leveneTest(share_all~valence,data=Data_CN) # passed
+leveneTest(share_all~valence,data=Data) # passed
 
 ##creditworthiness...
-leveneTest(credavg_all~valence,data=Data_EN)
-leveneTest(credavg_all~valence,data=Data_CN)
-leveneTest(credavg_all~valence,data=Data)
+leveneTest(credavg_all~valence,data=Data_EN) # failed X
+leveneTest(credavg_all~valence,data=Data_CN) # passed
+leveneTest(credavg_all~valence,data=Data) # passed
 
 
 ```
-
+The Levene's Tests 
 
 #4 Conclusions
 
-The assumptions for the tests utilized were not met in all cases. Assumptions of normality for the outcomes of interest were not met. This means that alternative tests are required for some of the hypothesis testing and to answer the research questions appropriately. An additional problem identified was that 
-
+The assumptions for the tests utilized were not met in all cases. Assumptions of normality for the outcomes of interest were not met. This means that alternative tests are required for some of the hypothesis testing and to answer the research questions appropriately.
