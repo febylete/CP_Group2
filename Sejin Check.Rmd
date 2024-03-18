@@ -224,6 +224,14 @@ qqPlot(res_SW_Data$residuals,id=FALSE)
 
 As is shown in the plots above,the residuals look skewed in opposite directions for the English and Chinese datasets for all three outcomes of interest. However, they appear uniformly distributed when the data are combined. Next, normality of the dependent variables was formally tested with the Shapiro-Wilk Test.
 ```{r SW,echo=FALSE}
+shapiro.test(res_cred_CN$residuals)
+shapiro.test(res_NW_CN$residuals)
+shapiro.test(res_SW_CN$residuals)
+
+shapiro.test(res_cred_EN$residuals)
+shapiro.test(res_NW_EN$residuals)
+shapiro.test(res_SW_EN$residuals)
+
 shapiro.test(res_cred_Data$residuals)
 shapiro.test(res_NW_Data$residuals)
 shapiro.test(res_SW_Data$residuals)
@@ -246,14 +254,12 @@ leveneTest(share_all~Feed,data=Data_EN) #failed X
 leveneTest(share_all~Feed,data=Data_CN) #passed
 leveneTest(share_all~Feed,data=Data) #passed
 
-
 ##creditworthiness...
 leveneTest(credavg_all~Feed,data=Data_EN) #failed X
 leveneTest(credavg_all~Feed,data=Data_CN) #passed
 leveneTest(credavg_all~Feed,data=Data) #passed
 
 #-------------------------------------------
-
 #valence
 
 #newsworthiness
@@ -271,10 +277,12 @@ leveneTest(credavg_all~valence,data=Data_EN) # failed X
 leveneTest(credavg_all~valence,data=Data_CN) # passed
 leveneTest(credavg_all~valence,data=Data) # passed
 
-
 ```
-The Levene's Tests 
+
+The Levene's Tests yielded mixed results. The test fails for a majority of the variables with the English dataset, with the exception of the newsworthiness across content feed types and shareworthiness between the two valence types. The tests passed across all variables for the Chinese dataset. The tests also passed across all variables for the combined dataset, with the exception of the assumption of homogeneity of variance for newsworthiness between the two valence conditions. 
 
 #4 Conclusions
 
-The assumptions for the tests utilized were not met in all cases. Assumptions of normality for the outcomes of interest were not met. This means that alternative tests are required for some of the hypothesis testing and to answer the research questions appropriately.
+The assumptions for the tests utilized were not met in all cases. Assumptions of normality for the outcomes of interest were not met. When the tests were replicated for each of the two samples separately, they failed for all outcome variables of interest;they also failed across all variables when the data was aggregated. Assumptions of homogeneity were not met for several of the variables of interest. The analysis replicated the findings of the client in terms of the English dataset. This means that alternative tests are required for some of the hypothesis testing and to answer the research questions appropriately.
+
+
