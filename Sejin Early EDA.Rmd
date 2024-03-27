@@ -23,11 +23,9 @@ CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
 ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
 ```
 
-#2 Data preparation
+#2 Original Data preparation
 
 ```{r dataprep, echo=FALSE}
-###need to use cred and nw totals... 
-
 #Chinese data, renaming/changing data types to factors
 CNdata_filtered_120123$Feed <- CNdata_filtered_120123$feed_typefour
 CNdata_filtered_120123$Feed <- as.factor(CNdata_filtered_120123$Feed)
@@ -59,13 +57,116 @@ Data$Group <- as.factor(Data$Group)
 #fixing age and gender
 Data$age <- 2024 - Data$age
 Data$gender <- as.factor(Data$gender)
+```
 
-#can select additional variables for regression, these were just the ones that stuck out as easy to add
+#Time inclusion
+```{r}
+#Chinese data, renaming/changing data types to factors
+CNdata_filtered_120123$Feed <- CNdata_filtered_120123$feed_typefour
+CNdata_filtered_120123$Feed <- as.factor(CNdata_filtered_120123$Feed)
+CNdata_filtered_120123$valence <- as.factor(CNdata_filtered_120123$valence)
+
+#Chinese data, selecting relevant variables
+Data_CN <- CNdata_filtered_120123 |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,
+                NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age,Durationinseconds,
+                Timer1_ClickCount,Timer1_FirstClick,Timer1_LastClick,Timer1_PageSubmit,
+                Timer2_ClickCount,Timer2_FirstClick,Timer2_LastClick,Timer2_PageSubmit,
+                Timer3_ClickCount,Timer3_FirstClick,Timer3_LastClick,Timer3_PageSubmit,
+                Timer4_ClickCount,Timer4_FirstClick,Timer4_LastClick,Timer4_PageSubmit,
+                Timer5_ClickCount,Timer5_FirstClick,Timer5_LastClick,Timer5_PageSubmit,
+                Timer6_ClickCount,Timer6_FirstClick,Timer6_LastClick,Timer6_PageSubmit,
+                Timer7_ClickCount,Timer7_FirstClick,Timer7_LastClick,Timer7_PageSubmit,
+                Timer8_ClickCount,Timer8_FirstClick,Timer8_LastClick,Timer8_PageSubmit) |> 
+  mutate(Group = 1)
+
+#English data, adding/renaming relevant variables
+ENdata_filtered_110123$NewsCred_SM <- unlist(ENdata_filtered_110123[,255])#rename to match CN data
+
+#English data, selecting relevant variables
+Data_EN <-ENdata_filtered_110123 |> 
+  dplyr::mutate(valence = feed_valence) |>
+  dplyr::mutate(Feed = feedtype_four) |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,
+                NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age,Durationinseconds,
+                Timer1_ClickCount,Timer1_FirstClick,Timer1_LastClick,Timer1_PageSubmit,
+                Timer2_ClickCount,Timer2_FirstClick,Timer2_LastClick,Timer2_PageSubmit,
+                Timer3_ClickCount,Timer3_FirstClick,Timer3_LastClick,Timer3_PageSubmit,
+                Timer4_ClickCount,Timer4_FirstClick,Timer4_LastClick,Timer4_PageSubmit,
+                Timer5_ClickCount,Timer5_FirstClick,Timer5_LastClick,Timer5_PageSubmit,
+                Timer6_ClickCount,Timer6_FirstClick,Timer6_LastClick,Timer6_PageSubmit,
+                Timer7_ClickCount,Timer7_FirstClick,Timer7_LastClick,Timer7_PageSubmit,
+                Timer8_ClickCount,Timer8_FirstClick,Timer8_LastClick,Timer8_PageSubmit) |> 
+  mutate(Group = 0)
+
+#English data, changing data types to factors
+Data_EN$Feed <- as.factor(Data_EN$Feed)
+Data_EN$valence <- as.factor(Data_EN$valence)
+
+#one dataframe, Group (1 = Chinese 0 = American)
+Data <- rbind(Data_CN,Data_EN)
+Data$Group <- as.factor(Data$Group)
+
+#fixing age and gender
+Data$age <- 2024 - Data$age
+Data$gender <- as.factor(Data$gender)
 ```
 
 #3 EDA Start
 ```{r}
+# 3b.i  Does the amount of time spent on the condition (newsfeed) affect the dependent variables (credibility, newsworthiness, shareworthiness)? 
+
+#First,create the 8 unique groups
+Data$Feed <- as.numeric(Data$Feed) #making it numeric temporarily to create new variable
+Data$Eight <- ifelse(Data$valence==1,Data$Feed,0)
+Data$Eight <- as.numeric(Data$Eight) #also numeric temporarily
+Data$Eight <- ifelse(Data$valence==2,Data$Feed+4,Data$Eight)
+
+#Returning the two to factors
+Data$Feed <- as.factor(Data$Feed)
+Data$Eight <- as.factor(Data$Eight)
+
+#Assuming Duration in seconds = best measurement and the top 3 are inactivities, then filter them out?
+# Data <- Data |> filter(Durationinseconds < 3601) #max is then 10718 sec = ~3 hrs?
+
+# boxFeed <- ggplot(Data, aes(x=share_all))+geom_violin()+coord_flip()+facet_wrap(~Feed)
+# boxFeed <- ggplot(Data, aes(x=credavg_all))+geom_boxplot()+coord_flip()+facet_wrap(~Feed)
+# boxFeed <- ggplot(Data, aes(x=nwavg_all))+geom_boxplot()+coord_flip()+facet_wrap(~Feed)
+
+# 3b.ii   Interaction effect: Does a) content types (news, memes, activism, ads) and/or b) valence of news (pos / neg) mediate the effect of credibility (e..g) and time spent on stimuli?
+```
+
+##Plot Backups from slides, careful there's a bunch not super labeled sorry
+```{r}
+Data <- Data |> filter(is.na(Feed)==FALSE)
+ggplot(Data, aes(Feed,Durationinseconds))+geom_boxplot(aes(color=Feed))
+ggplot(Data, aes(Feed,Durationinseconds))+geom_boxplot(aes(color=valence))
+ggplot(Data,aes(Durationinseconds,NewsSharing_SM))+geom_point()+geom_jitter()
+ggplot(Data,aes(Durationinseconds,NewsSharing_SM))+geom_point(aes(color=Feed,size=0.8,alpha=.8))
+ggplot(Data,aes(Durationinseconds,NewsSharing_SM))+geom_point()+geom_jitter()+coord_flip()
+ggplot(Data,aes(Durationinseconds,NewsSharing_SM))+geom_point()+geom_jitter()+coord_flip()
+ggplot(Data,aes(log(Durationinseconds),NewsSharing_SM))+geom_point(aes(size=0.3,alpha=0.8,color=Feed))
+ggplot(Data,aes(Durationinseconds,credavg_all))+geom_point(aes(size=0.3,alpha=0.8,color=Feed))
+```
+
+## Over 30 Seconds
+```{r}
+Data$ThirtySPlus <- ifelse(Data$Durationinseconds>3600,1,0)
+
+CN_Over30 <- Data |> 
+  filter(Group==1) |> 
+  mutate(ThirtySPlus = ifelse(Durationinseconds>3600,1,0))
+EN_Over30 <- Data |> 
+  filter(Group==0) |> 
+  mutate(ThirtySPlus = ifelse(Durationinseconds>3600,1,0))
 
 
+Data$ThirtySPlus <- as.factor(Data$ThirtySPlus)
+EN_Over30$ThirtySPlus <- as.factor(EN_Over30$ThirtySPlus)
+CN_Over30$ThirtySPlus <- as.factor(CN_Over30$ThirtySPlus)
+
+ggplot(Data,aes(Group,Durationinseconds))+geom_point(aes(color=ThirtySPlus))+geom_hline(yintercept = 3600)
+table(CN_Over30$ThirtySPlus)
+table(EN_Over30$ThirtySPlus)
 ```
 
