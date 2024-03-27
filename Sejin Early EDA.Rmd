@@ -151,22 +151,28 @@ ggplot(Data,aes(Durationinseconds,credavg_all))+geom_point(aes(size=0.3,alpha=0.
 
 ## Over 30 Seconds
 ```{r}
-Data$ThirtySPlus <- ifelse(Data$Durationinseconds>3600,1,0)
+TwentyMin <- 2400 #seconds
+ThirtyMin <- 3600 #seconds
+
+timethresh <- ThirtyMin #replace "ThirtyMind" with "TwentyMin" or any other time based in (s) to get whatever threshhold
+
+Data$ThirtySPlus <- ifelse(Data$Durationinseconds>timethresh,1,0)
 
 CN_Over30 <- Data |> 
   filter(Group==1) |> 
-  mutate(ThirtySPlus = ifelse(Durationinseconds>3600,1,0))
+  mutate(ThirtySPlus = ifelse(Durationinseconds>timethresh,1,0))
 EN_Over30 <- Data |> 
   filter(Group==0) |> 
-  mutate(ThirtySPlus = ifelse(Durationinseconds>3600,1,0))
-
+  mutate(ThirtySPlus = ifelse(Durationinseconds>timethresh,1,0))
 
 Data$ThirtySPlus <- as.factor(Data$ThirtySPlus)
 EN_Over30$ThirtySPlus <- as.factor(EN_Over30$ThirtySPlus)
 CN_Over30$ThirtySPlus <- as.factor(CN_Over30$ThirtySPlus)
 
-ggplot(Data,aes(Group,Durationinseconds))+geom_point(aes(color=ThirtySPlus))+geom_hline(yintercept = 3600)
+ggplot(Data,aes(Group,Durationinseconds))+geom_point(aes(color=ThirtySPlus))+geom_hline(yintercept = timethresh)
 table(CN_Over30$ThirtySPlus)
 table(EN_Over30$ThirtySPlus)
+
+
 ```
 
