@@ -1,7 +1,7 @@
 ---
 title: "Sejin EDA"
 author: "Joe"
-date: "2024-03-18"
+date: "2024-03-29"
 output: html_document
 ---
 
@@ -68,7 +68,7 @@ CNdata_filtered_120123$valence <- as.factor(CNdata_filtered_120123$valence)
 
 #Chinese data, selecting relevant variables
 Data_CN <- CNdata_filtered_120123 |> 
-  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,ResponseId,
                 NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age,Durationinseconds,
                 Timer1_ClickCount,Timer1_FirstClick,Timer1_LastClick,Timer1_PageSubmit,
                 Timer2_ClickCount,Timer2_FirstClick,Timer2_LastClick,Timer2_PageSubmit,
@@ -87,7 +87,7 @@ ENdata_filtered_110123$NewsCred_SM <- unlist(ENdata_filtered_110123[,255])#renam
 Data_EN <-ENdata_filtered_110123 |> 
   dplyr::mutate(valence = feed_valence) |>
   dplyr::mutate(Feed = feedtype_four) |> 
-  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,ResponseId,
                 NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age,Durationinseconds,
                 Timer1_ClickCount,Timer1_FirstClick,Timer1_LastClick,Timer1_PageSubmit,
                 Timer2_ClickCount,Timer2_FirstClick,Timer2_LastClick,Timer2_PageSubmit,
@@ -149,30 +149,121 @@ ggplot(Data,aes(log(Durationinseconds),NewsSharing_SM))+geom_point(aes(size=0.3,
 ggplot(Data,aes(Durationinseconds,credavg_all))+geom_point(aes(size=0.3,alpha=0.8,color=Feed))
 ```
 
-## Over 30 Seconds
+## Sample Duration Cutoff times
 ```{r}
-TwentyMin <- 2400 #seconds
-ThirtyMin <- 3600 #seconds
+#sample thresholds
+Time_TwentyMin <- 1200 #seconds
+Time_ThirtyMin <- 1800 #seconds
+Time_FortyMin <- 2400 #seconds
+Time_Hour <- 3600 #seconds
+# ------------------------------------
+Data_CN <- Data_CN |> # Chinese
+  mutate(Twenty_Min_Less = ifelse(Durationinseconds <= Time_TwentyMin,1,0)) |> # Less than or equal to 20 Min
+  mutate(Twenty_Min_Plus = ifelse(Durationinseconds > Time_TwentyMin,1,0)) |> # Greater than 20 min
+  mutate(Thirty_Min_Plus = ifelse(Durationinseconds > Time_ThirtyMin,1,0)) |> # Greater than 30 min
+  mutate(Forty_Min_Plus = ifelse(Durationinseconds > Time_FortyMin,1,0)) |> # Greater than 40 min
+  mutate(Hour_Plus = ifelse(Durationinseconds > Time_Hour,1,0)) # Greater than 1 hour
 
-timethresh <- ThirtyMin #replace "ThirtyMind" with "TwentyMin" or any other time based in (s) to get whatever threshhold
+Data_EN <- Data_EN |> # English
+  mutate(Twenty_Min_Less = ifelse(Durationinseconds <= Time_TwentyMin,1,0)) |> # Less than or equal to 20 Min
+  mutate(Twenty_Min_Plus = ifelse(Durationinseconds > Time_TwentyMin,1,0)) |> # Greater than 20 min
+  mutate(Thirty_Min_Plus = ifelse(Durationinseconds > Time_ThirtyMin,1,0)) |> # Greater than 30 min
+  mutate(Forty_Min_Plus = ifelse(Durationinseconds > Time_FortyMin,1,0)) |> # Greater than 40 min
+  mutate(Hour_Plus = ifelse(Durationinseconds > Time_Hour,1,0)) # Greater than 1 hour
 
-Data$ThirtySPlus <- ifelse(Data$Durationinseconds>timethresh,1,0)
+# tried making the following two blocks cleaner using lapply but idk why no work
+Data_CN$Twenty_Min_Less <- as.factor(Data_CN$Twenty_Min_Less)
+Data_CN$Twenty_Min_Plus <- as.factor(Data_CN$Twenty_Min_Plus)
+Data_CN$Thirty_Min_Plus <- as.factor(Data_CN$Thirty_Min_Plus)
+Data_CN$Forty_Min_Plus <- as.factor(Data_CN$Forty_Min_Plus)
+Data_CN$Hour_Plus <- as.factor(Data_CN$Hour_Plus)
 
-CN_Over30 <- Data |> 
-  filter(Group==1) |> 
-  mutate(ThirtySPlus = ifelse(Durationinseconds>timethresh,1,0))
-EN_Over30 <- Data |> 
-  filter(Group==0) |> 
-  mutate(ThirtySPlus = ifelse(Durationinseconds>timethresh,1,0))
-
-Data$ThirtySPlus <- as.factor(Data$ThirtySPlus)
-EN_Over30$ThirtySPlus <- as.factor(EN_Over30$ThirtySPlus)
-CN_Over30$ThirtySPlus <- as.factor(CN_Over30$ThirtySPlus)
-
-ggplot(Data,aes(Group,Durationinseconds))+geom_point(aes(color=ThirtySPlus))+geom_hline(yintercept = timethresh)
-table(CN_Over30$ThirtySPlus)
-table(EN_Over30$ThirtySPlus)
+Data_EN$Twenty_Min_Less <- as.factor(Data_EN$Twenty_Min_Less)
+Data_EN$Twenty_Min_Plus <- as.factor(Data_EN$Twenty_Min_Plus)
+Data_EN$Thirty_Min_Plus <- as.factor(Data_EN$Thirty_Min_Plus)
+Data_EN$Forty_Min_Plus <- as.factor(Data_EN$Forty_Min_Plus)
+Data_EN$Hour_Plus <- as.factor(Data_EN$Hour_Plus)
 
 
+#plots Chinese
+Plot_Under_20_CN <- ggplot(Data_CN,aes(Twenty_Min_Less)) +
+  geom_bar(aes(fill=Twenty_Min_Less))+
+  labs(title="Amount of people who spent less than 20 minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Less than 20","20 or more"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_20_CN <- ggplot(Data_CN,aes(Twenty_Min_Plus)) +
+  geom_bar(aes(fill=Twenty_Min_Less))+
+  labs(title="Amount of people who spent 20 or more minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("20 or more","Less than 20"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_30_CN <- ggplot(Data_CN,aes(Thirty_Min_Plus)) +
+  geom_bar(aes(fill=Thirty_Min_Plus))+
+  labs(title="Amount of people who spent more than 30 minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Under 30","Over 30"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_40_CN <- ggplot(Data_CN,aes(Forty_Min_Plus)) +
+  geom_bar(aes(fill=Forty_Min_Plus))+
+  labs(title="Amount of people who spent more than 40 minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Under 40","Over 40"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_Hour_CN <- ggplot(Data_CN,aes(Hour_Plus)) +
+  geom_bar(aes(fill=Hour_Plus))+
+  labs(title="Amount of people who spent more than 1 hour on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Over 1 Hour","Not over 1 Hour"))+
+  theme(legend.title = element_blank())
+
+
+Plot_Under_20_CN
+Plot_Over_20_CN
+Plot_Over_30_CN
+Plot_Over_40_CN
+Plot_Over_Hour_CN
+
+
+#--------------------------------------------------
+
+#plots english
+Plot_Under_20_EN <- ggplot(Data_EN,aes(Twenty_Min_Less)) +
+  geom_bar(aes(fill=Twenty_Min_Less))+
+  labs(title="Amount of people who spent less than 20 minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Less than 20","20 or more"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_20_EN <- ggplot(Data_EN,aes(Twenty_Min_Plus)) +
+  geom_bar(aes(fill=Twenty_Min_Less))+
+  labs(title="Amount of people who spent 20 or more minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("20 or more","Less than 20"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_30_EN <- ggplot(Data_EN,aes(Thirty_Min_Plus)) +
+  geom_bar(aes(fill=Thirty_Min_Plus))+
+  labs(title="Amount of people who spent more than 30 minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Under 30","Over 30"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_40_EN <- ggplot(Data_EN,aes(Forty_Min_Plus)) +
+  geom_bar(aes(fill=Forty_Min_Plus))+
+  labs(title="Amount of people who spent more than 40 minutes on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Under 40","Over 40"))+
+  theme(legend.title = element_blank())
+
+Plot_Over_Hour_EN <- ggplot(Data_EN,aes(Hour_Plus)) +
+  geom_bar(aes(fill=Hour_Plus))+
+  labs(title="Amount of people who spent more than 1 hour on the trial",x="Group",y="Count")+
+  scale_fill_hue(labels=c("Under 1 hour","Over 1 Hour"))+
+  theme(legend.title = element_blank())
+
+
+Plot_Under_20_EN
+Plot_Over_20_EN
+Plot_Over_30_EN
+Plot_Over_40_EN
+Plot_Over_Hour_EN
+
+# Data$Twenty_Min_Plus <- ifelse(Data$Durationinseconds>timethresh,1,0) would use this to make it for the overall dataset
 ```
 
