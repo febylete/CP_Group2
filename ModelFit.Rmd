@@ -1,0 +1,360 @@
+---
+title: "Reframing News Through Curation Design"
+author: "Group 2"
+date: "2024-03-08"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Sejin Paik is a graduate student in the Boston University College of Communication Division of Emerging Media Studies. In a pilot study, Reframing the News Through Social Media Curation Design, she aims to explore the potential impacts of social media feed curation on users’ perceptions of news items and use the results to help with dissertation. Her research questions were the following: 
+How does the activism feed affect perceptions of news credibility compared to the other surrounding-content newsfeeds?
+How does the advertisement feed affect perceptions of a) news credibility, b) newsworthiness and c) shareworthiness of the news compared to the other surrounding-content newsfeeds?
+How does news valence moderate the impact of external content elements on a) news credibility, b) newsworthiness, and c) shareworthiness? 
+How do perceptions of news credibility, newsworthiness and shareworthiness in different curated newsfeeds vary between American and Chinese participants? 
+From those questions, she formulated two main hypotheses. 
+Memes will produce a greater level of a) credibility, b) newsworthiness, and c) shareworthiness perceptions of the news compared to the news-only newsfeed.
+Activism will produce a greater level of a) newsworthiness and b) shareworthiness perception of the news compared to the other content surrounding newsfeeds.
+
+Sejin’s data came from two different samples. The first sample was composed of 661 participants from the United States and the second sample was composed of 484 participants from China. Participants in both samples were randomly assigned to one of eight conditions according to a 4 by 2 factorial design. There were two independent variables, one with four levels and a second with two levels. The first independent variable was feed content type, which was one of the following: activism, advertisements, memes, and news. The second independent variable was story valence, which was either positive or negative. She also provided a copy of the manuscript for her paper, which included some of her background research and hypotheses, a copy of the survey that was distributed to the participants, and the SPSS output for her analyses.
+
+Each newsfeed condition consists of seven posts: a positive or negative news story positioned fourth in the vertical newsfeed stack, surrounded by one of four content elements (memes, ads, activism, or additional news stories). The feeds were presented with topic filtering to reduce potential confounding variables and the topic is about artificial intelligence (AI), a relatively politically neutral subject.
+
+The client requested assistance with a few tasks. First, she requested a duplication of ANOVA and ANCOVA tests that were performed to test her hypotheses to ensure that accurate results were obtained. Second, she requested that the results of the assumption checking be verified, as well as assistance with potentially modifying the analysis depending on whether the appropriate assumptions were met. Third, she asked that if there any potentially alternative or additional methods of analysis that might be more appropriate to answer her hypotheses and research questions, that those be recommended to her.
+
+# Packages
+```{r packageload,echo=FALSE}
+library(readr)
+library(dplyr)
+library(car)
+library(ggplot2)
+library(gridExtra)
+library(effects)
+library(car)
+library(MASS)
+library(splines) 
+```
+
+# Data loading
+```{r dataload,echo=FALSE}
+CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
+ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
+```
+
+# Data preparation
+The surveys were administered to participants via Qualtrics and delivered to the consulting group as two separate .csv files, one for the American sample and one for the Chinese sample. They both contained variables such as the feed content and valence conditions the participants were assigned to, ratings of news credibility, ratings of newsworthiness, and ratings of news shareworthiness.
+
+One of the main steps required as part of the data preparation was standardizing the labels for the main variables of interest in the data, since there were some labeling discrepancies between the two datasets. A second step involved changing certain variables to the appropriate data classes. For example, the “valence” variable had to be changed from numeric to factor. The next step was to filter the relevant variables for the analysis from each of the datasets to include in the analysis; both sets included hundreds of columns, many of which were unrelated to the relevant objectives. Please note that for our analysis, we are performing tests on both datasets separately. 
+
+```{r dataprep, echo=FALSE}
+#Chinese data, renaming/changing data types to factors
+CNdata_filtered_120123$Feed <- CNdata_filtered_120123$feed_typefour
+CNdata_filtered_120123$Feed <- as.factor(CNdata_filtered_120123$Feed)
+CNdata_filtered_120123$valence <- as.factor(CNdata_filtered_120123$valence)
+
+#Chinese data, selecting relevant variables
+Data_CN <- CNdata_filtered_120123 |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,ResponseId,
+                NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age,Durationinseconds) |> 
+  mutate(Group = 1)
+
+#English data, adding/renaming relevant variables
+ENdata_filtered_110123$NewsCred_SM <- unlist(ENdata_filtered_110123[,255])#rename to match CN data
+
+#English data, selecting relevant variables
+Data_EN <-ENdata_filtered_110123 |> 
+  dplyr::mutate(valence = feed_valence) |>
+  dplyr::mutate(Feed = feedtype_four) |> 
+  dplyr::select(Feed,valence,credavg_all,nwavg_all,share_all,Finished,ResponseId,
+                NewsSharing_SM,NewsCred_SM,AI_acceptance,GenTech_op,gender,age,Durationinseconds) |> 
+  mutate(Group = 0)
+
+#English data, changing data types to factors
+Data_EN$Feed <- as.factor(Data_EN$Feed)
+Data_EN$valence <- as.factor(Data_EN$valence)
+
+#one dataframe, Group (1 = Chinese 0 = American)
+Data <- rbind(Data_CN,Data_EN)
+Data$Group <- as.factor(Data$Group)
+
+#fixing age and gender
+Data$age <- 2024 - Data$age
+Data$gender <- as.factor(Data$gender)
+
+#------------------------------------- Time oddity fixing
+#sample thresholds
+Time_TwentyMin <- 1200 #seconds
+Time_ThirtyMin <- 1800 #seconds
+Time_FortyMin <- 2400 #seconds
+Time_Hour <- 3600 #seconds
+# ------------------------------------
+Data_CN <- Data_CN |> # Chinese
+  mutate(Twenty_Min_Less = ifelse(Durationinseconds <= Time_TwentyMin,1,0)) |> # Less than or equal to 20 Min
+  mutate(Twenty_Min_Plus = ifelse(Durationinseconds > Time_TwentyMin,1,0)) |> # Greater than 20 min
+  mutate(Thirty_Min_Plus = ifelse(Durationinseconds > Time_ThirtyMin,1,0)) |> # Greater than 30 min
+  mutate(Forty_Min_Plus = ifelse(Durationinseconds > Time_FortyMin,1,0)) |> # Greater than 40 min
+  mutate(Hour_Plus = ifelse(Durationinseconds > Time_Hour,1,0)) # Greater than 1 hour
+
+Data_EN <- Data_EN |> # English
+  mutate(Twenty_Min_Less = ifelse(Durationinseconds <= Time_TwentyMin,1,0)) |> # Less than or equal to 20 Min
+  mutate(Twenty_Min_Plus = ifelse(Durationinseconds > Time_TwentyMin,1,0)) |> # Greater than 20 min
+  mutate(Thirty_Min_Plus = ifelse(Durationinseconds > Time_ThirtyMin,1,0)) |> # Greater than 30 min
+  mutate(Forty_Min_Plus = ifelse(Durationinseconds > Time_FortyMin,1,0)) |> # Greater than 40 min
+  mutate(Hour_Plus = ifelse(Durationinseconds > Time_Hour,1,0)) # Greater than 1 hour
+
+# tried making the following two blocks cleaner using lapply but idk why no work
+Data_CN$Twenty_Min_Less <- as.factor(Data_CN$Twenty_Min_Less)
+Data_CN$Twenty_Min_Plus <- as.factor(Data_CN$Twenty_Min_Plus)
+Data_CN$Thirty_Min_Plus <- as.factor(Data_CN$Thirty_Min_Plus)
+Data_CN$Forty_Min_Plus <- as.factor(Data_CN$Forty_Min_Plus)
+Data_CN$Hour_Plus <- as.factor(Data_CN$Hour_Plus)
+
+Data_EN$Twenty_Min_Less <- as.factor(Data_EN$Twenty_Min_Less)
+Data_EN$Twenty_Min_Plus <- as.factor(Data_EN$Twenty_Min_Plus)
+Data_EN$Thirty_Min_Plus <- as.factor(Data_EN$Thirty_Min_Plus)
+Data_EN$Forty_Min_Plus <- as.factor(Data_EN$Forty_Min_Plus)
+Data_EN$Hour_Plus <- as.factor(Data_EN$Hour_Plus)
+
+knitr::include_graphics("C:/Users/Joe/Desktop/676 Stat Practicum 2/Spring Consulting/ChineseAmerican/CP_Group2-main/CP_Group2-main/CP_Group2/Table Chinese English Duration Oddities.png") #when clicking on image under files, open option that says "copy path" and paste into quotes
+
+#can select additional variables for regression, these were just the ones that stuck out as easy to add
+```
+
+
+
+```{r, echo = FALSe}
+cor_matrix_CN <- cor(Data_CN[,c("credavg_all","nwavg_all","share_all")])
+cor_matrix_EN <- cor(Data_EN[,c("credavg_all","nwavg_all","share_all")], use = "complete.obs")
+# Print the correlation matrix
+print(cor_matrix_CN)
+print(cor_matrix_EN)
+```
+There are positive moderate correlations among the three variables. This suggests that our statistical analysis for each outcome variables (credibiitity, newsworthiness, and shareworthiness) might produce very similar results. Also, to simplify the model, we can also consider combining the three measurements into one score, which can be a new column in the dataset. 
+# Statistical Analysis:
+## ANOVA Assumption Check:
+
+```{r plots,echo=FALSE}
+#Feed X Shareworthiness (ordinal, so boxplot)
+boxS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
+  geom_boxplot() + 
+  ggtitle("English Data Feed Type and Shareworthiness Scores (Ordinal)")
+
+boxS2 <- ggplot(Data_CN, aes(Feed,share_all,fill=Feed)) +
+  geom_boxplot() + 
+  ggtitle("Chinese Data Feed Type and Shareworthiness Scores (Ordinal)")
+
+grid.arrange(boxS1,boxS2,nrow=1)
+
+#------------------------------------------------------------------------------
+
+#Feed X Creditworthiness
+ViolinC1 <- ggplot(Data_EN, aes(Feed,credavg_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("English Data Feed Type and Creditworthiness Scores")
+
+ViolinC2 <- ggplot(Data_CN, aes(Feed,credavg_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("Chinese Data Feed Type and Creditworthiness Scores")
+
+
+grid.arrange(ViolinC1,ViolinC2, nrow=1)
+
+#------------------------------------------------------------------------------
+
+#Feed X Shareworthiness
+ViolinS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
+  geom_violin() +
+  ggtitle("English Data Feed Type and Shareworthiness Scores")
+
+ViolinS2 <- ggplot(Data_CN, aes(Feed,share_all,fill=Feed)) + 
+  geom_violin() +
+  ggtitle("Chinese Data Feed Type and Shareworthiness Scores")
+
+
+grid.arrange(ViolinS1,ViolinS2, nrow=1)
+
+```
+
+
+### Hypothesis 2
+Activism will produce a greater level of:
+  a) Newsworthiness
+  b) Share-worthiness
+Compared with the other 3 feeds.
+
+This hypothesis was originally tested with ANCOVAs, with the feed content types and valences treated as independent variables and the following items as covariates: participants' frequency of sharing news posts on social media, attitudes on technology's impact (positive or negative) on society, and feelings toward AI automation. However, the client requested that the assumptions for these tests be repeated in order to make sure that these tests were appropriate.
+
+## Hypothesis 2 Assumption checks
+
+The first assumption to be checked was the normality of residuals.This assumption was for the Chinese and English datasets individually, since the client ran the tests on each sample separately; these assumption checks were repeated. The assumption was also checked for the combined dataset, since it is appropriate to check given that the data for the two groups were capable of being combined and the pertinent hypothesis does not explicitly reference a distinction between the two groups. The assumption was also checked for the Credibility measure, since this is required for some of the tests performed later in the analysis.First, visuals were created:
+
+```{r residual normality, echo=FALSE}
+#Residual Check for the 3 main outcome variables for the English data only
+
+# Credibility
+res_cred_EN <- aov(credavg_all~Feed,Data_EN)
+# Newsworthiness
+res_NW_EN <- aov(nwavg_all~Feed,Data_EN)
+# Shareworthiness
+res_SW_EN <- aov(credavg_all~Feed,Data_EN)
+
+#Residual Check for the 3 main outcome variables for the Chinese data only
+
+# Credibility
+res_cred_CN <- aov(credavg_all~Feed,Data_CN)
+# Newsworthiness
+res_NW_CN <- aov(nwavg_all~Feed,Data_CN)
+# Shareworthiness
+res_SW_CN <- aov(credavg_all~Feed,Data_CN)
+
+
+```
+
+
+```{r normality plots,echo=FALSE}
+# English only
+
+#plots, histogram and QQ
+par(mfrow=c(2,3))
+hist(res_cred_EN$residuals)
+hist(res_NW_EN$residuals)
+hist(res_SW_EN$residuals)
+qqPlot(res_cred_EN$residuals,id=FALSE)
+qqPlot(res_NW_EN$residuals,id=FALSE)
+qqPlot(res_SW_EN$residuals,id=FALSE)
+
+
+# Chinese only
+
+#plots, histogram and QQ
+par(mfrow=c(2,3))
+hist(res_cred_CN$residuals)
+hist(res_NW_CN$residuals)
+hist(res_SW_CN$residuals)
+qqPlot(res_cred_CN$residuals,id=FALSE)
+qqPlot(res_NW_CN$residuals,id=FALSE)
+qqPlot(res_SW_CN$residuals,id=FALSE)
+```
+
+As is shown in the plots above,the residuals look skewed in opposite directions for the English and Chinese datasets for all three outcomes of interest. Next, normality of the dependent variables was formally tested with the Shapiro-Wilk Test.
+```{r SW,echo=FALSE}
+shapiro.test(res_cred_CN$residuals)
+shapiro.test(res_NW_CN$residuals)
+shapiro.test(res_SW_CN$residuals)
+
+shapiro.test(res_cred_EN$residuals)
+shapiro.test(res_NW_EN$residuals)
+shapiro.test(res_SW_EN$residuals)
+```
+
+
+Another assumption that had to be checked was the homogeneity of variance. Levene's Test was performed to verify that this assumption holds true across the four feed conditions and the two valence conditions; it was applied for both the English and Chinese datasets, to replicate what the client did.
+
+```{r homogeneity of variance, echo=FALSE}
+###Use Levene's
+library(car)
+
+##newsworthiness... p > .05 for all three partitions of the data, so no concerns about heterogeneity of variance for newsworthiness across the 4 different feed types
+leveneTest(nwavg_all~Feed,data=Data_EN) #passed
+leveneTest(nwavg_all~Feed,data=Data_CN) #passed
+
+##shareworthiness...
+leveneTest(share_all~Feed,data=Data_EN) #failed X
+leveneTest(share_all~Feed,data=Data_CN) #passed
+
+##creditworthiness...
+leveneTest(credavg_all~Feed,data=Data_EN) #failed X
+leveneTest(credavg_all~Feed,data=Data_CN) #passed
+
+#-------------------------------------------
+#valence
+
+#newsworthiness
+leveneTest(nwavg_all~valence,data=Data_EN) #failed X
+leveneTest(nwavg_all~valence,data=Data_CN) #passed
+
+##shareworthiness...
+leveneTest(share_all~valence,data=Data_EN) # passed 
+leveneTest(share_all~valence,data=Data_CN) # passed
+
+##creditworthiness...
+leveneTest(credavg_all~valence,data=Data_EN) # failed X
+leveneTest(credavg_all~valence,data=Data_CN) # passed
+
+
+```
+
+The Levene's Tests yielded mixed results. The test fails for a majority of the variables with the English dataset, with the exception of the newsworthiness across content feed types and shareworthiness between the two valence types. The tests passed across all variables for the Chinese dataset. The tests also passed across all variables for the combined dataset, with the exception of the assumption of homogeneity of variance for newsworthiness between the two valence conditions. 
+
+## Analysis:
+
+The assumptions for the tests utilized were not met in all cases. Assumptions of normality for the outcomes of interest were not met. When the tests were replicated for each of the two samples separately, they failed for all outcome variables of interest;they also failed across all variables when the data was aggregated. Assumptions of homogeneity were not met for several of the variables of interest. The analysis replicated the findings of the client in terms of the English dataset. This means that alternative tests are required for some of the hypothesis testing and to answer the research questions appropriately.
+
+However, since the outcome variables are ordinal variables, applying ANOVA or other non-parametric, non-normal tests might not be appropriate since those tests treat the outcome variables as continuous values. Even though in practice, there are many academic disciplines that use ANOVA or statistical tests that treat the outcome variables to be continuous even though they are ordinal, but from the statistical perspective, the method is not correct. Hence, it is recommended to perform statistical tests that are designed for ordinal outcomes. For this reason, we consider using ordinal logistic regression. Using this method might not necessarily answer specific research questions that the client presents but our results can be used as a first step to explore the dataset and see the relationships among the variables in a quantitative way besides visualization. 
+
+# Modeling with Proportional-Odds Logistic Regression:
+As suggested in the previous section, we attempt to fit the proportional-odds logistic regression on each outcome variables (credibility, newsworthiness, and shareworthiness). The independent variables are surrounding content-type and feed valance. Note that in the dataset, the client has converted feed types into numerical values.
+
+1 - news-mixed feeds
+2 - meme-mixed feeds
+3 - activism-mixed feeds
+4 - ad-mixed feeds
+
+and feed valence to be
+1- positive news
+2- negative news
+
+
+#Filtering out durationinseconds outliers ... do before the regression and after the assumption checks
+```{r}
+#Change "Thirty_Min_Plus to any given column for time thresholds listed above to filter out the odd values
+# Data_CN <- Data_CN |> 
+#   filter(Thirty_Min_Plus=="0")
+# Data_EN <- Data_EN |> 
+#   filter(Thirty_Min_Plus=="0")
+```
+
+
+## English data:
+```{r, echo = FALSE}
+Data_EN <- na.omit(Data_EN)
+Data_EN <- Data_EN %>%
+  mutate(across(c("credavg_all", "Feed", "valence"), factor))
+model1_cred_EN <- polr(as.factor(credavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_EN)
+model1_news_EN <- polr(as.factor(nwavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_EN)
+model1_share_EN <- polr(as.factor(share_all) ~ as.factor(Feed) + as.factor(valence), data = Data_EN)
+summary(model1_cred_EN)
+summary(model1_news_EN)
+summary(model1_share_EN)
+```
+
+```{r}
+exp(cbind(OR = coef(model1_cred_EN), confint(model1_cred_EN)))
+exp(cbind(OR = coef(model1_news_EN), confint(model1_news_EN)))
+exp(cbind(OR = coef(model1_share_EN), confint(model1_share_EN)))
+```
+## Chinese dataset:
+```{r}
+Data_CN <- na.omit(Data_CN)
+Data_CN <- Data_CN %>%
+  mutate(across(c("credavg_all", "Feed", "valence"), factor))
+model1_cred_CN <- polr(as.factor(credavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_CN)
+model1_news_CN <- polr(as.factor(nwavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_CN)
+model1_share_CN <- polr(as.factor(share_all) ~ as.factor(Feed) + as.factor(valence), data = Data_CN)
+summary(model1_cred_CN)
+summary(model1_news_CN)
+summary(model1_share_CN)
+```
+
+```{r}
+exp(cbind(OR = coef(model1_cred_CN), confint(model1_cred_CN)))
+exp(cbind(OR = coef(model1_news_CN), confint(model1_news_CN)))
+exp(cbind(OR = coef(model1_share_CN), confint(model1_share_CN)))
+```
+
