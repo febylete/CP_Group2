@@ -313,11 +313,11 @@ and feed valence to be
 
 #Filtering out durationinseconds outliers ... do before the regression and after the assumption checks
 ```{r}
-#Change "Thirty_Min_Plus to any given column for time thresholds listed above to filter out the odd values
-# Data_CN <- Data_CN |> 
-#   filter(Thirty_Min_Plus=="0")
-# Data_EN <- Data_EN |> 
-#   filter(Thirty_Min_Plus=="0")
+# Change "Thirty_Min_Plus to any given column for time thresholds listed above to filter out the odd values
+Data_CN <- Data_CN |>
+  filter(Thirty_Min_Plus=="0")
+Data_EN <- Data_EN |>
+  filter(Thirty_Min_Plus=="0")
 ```
 
 
