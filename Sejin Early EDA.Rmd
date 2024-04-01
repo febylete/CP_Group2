@@ -225,7 +225,6 @@ Plot_Over_Hour_CN
 
 
 #--------------------------------------------------
-
 #plots english
 Plot_Under_20_EN <- ggplot(Data_EN,aes(Twenty_Min_Less)) +
   geom_bar(aes(fill=Twenty_Min_Less))+
