@@ -223,7 +223,6 @@ Plot_Over_30_CN
 Plot_Over_40_CN
 Plot_Over_Hour_CN
 
-
 #--------------------------------------------------
 #plots english
 Plot_Under_20_EN <- ggplot(Data_EN,aes(Twenty_Min_Less)) +
