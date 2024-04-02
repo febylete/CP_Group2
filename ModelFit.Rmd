@@ -183,7 +183,6 @@ NewsXFeed_CN <- ggplot(Data_CN, aes(Feed,nwavg_all,color=Feed)) +
   theme(legend.position = "none")+
   ggtitle("Chinese Data Feed Type and Shareworthiness Scores")
 
-
 grid.arrange(NewsXFeed_EN,NewsXFeed_CN, nrow=1)
 
 ```
