@@ -68,21 +68,18 @@ there any potentially alternative or additional methods of analysis that
 might be more appropriate to answer her hypotheses and research
 questions, that those be recommended to her.
 
-```{r packageload,echo=FALSE}
-library(readr)
-library(dplyr)
-library(car)
-library(ggplot2)
-library(gridExtra)
-library(effects)
-library(car)
-library(MASS)
-library(splines)
-library(xtable)
-library(kableExtra)
+```{r packageload,echo=FALSE,warning=FALSE,message=FALSE}
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(car))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(gridExtra))
+suppressPackageStartupMessages(library(effects))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(splines))
 ```
 
-```{r dataload,echo=FALSE}
+```{r dataload,echo=FALSE,warning=FALSE,message=FALSE}
 CNdata_filtered_120123 <- read_csv("CNdata_filtered_120123.csv")
 ENdata_filtered_110123 <- read_csv("ENdata_filtered_110123.csv")
 ```
@@ -176,6 +173,7 @@ Data_EN$Hour_Plus <- as.factor(Data_EN$Hour_Plus)
 
 ```
 
+## Correlation matrix
 ```{r correlationmatrix, echo = FALSE}
 cor_matrix_CN <- cor(Data_CN[,c("credavg_all","nwavg_all","share_all")])
 cor_matrix_EN <- cor(Data_EN[,c("credavg_all","nwavg_all","share_all")], use = "complete.obs")
@@ -196,13 +194,15 @@ Check:
 #Feed X Shareworthiness
 ShareXFeed_EN <- ggplot(Data_EN, aes(Feed,share_all,color=Feed)) +
   geom_count() + 
-  theme(legend.position = "none",plot.title = element_text(size=13))+
+  theme(legend.position = "none",plot.title = element_text(size=11))+
+  labs(y="Average Shareworthiness scores")+
   ggtitle("Feed & Shareworthiness (English)")
 
 ShareXFeed_CN <- ggplot(Data_CN, aes(Feed,share_all,color=Feed)) +
   geom_count() + 
-  theme(legend.position = "none",plot.title = element_text(size=13))+
-  labs(caption = "*Larger dot size represents higher frequency of score")+
+  theme(legend.position = "none",plot.title = element_text(size=11))+
+  labs(y="Average Shareworthiness scores",
+       caption = "*Larger dot size represents higher frequency of score")+
   ggtitle("Feed and Shareworthiness (Chinese)")
 
 grid.arrange(ShareXFeed_EN,ShareXFeed_CN,nrow=1)
@@ -210,13 +210,15 @@ grid.arrange(ShareXFeed_EN,ShareXFeed_CN,nrow=1)
 #Feed X Creditworthiness
 CredXFeed_EN <- ggplot(Data_EN, aes(Feed,credavg_all,color=Feed)) +
   geom_count() +
-  theme(legend.position = "none",plot.title = element_text(size=13))+
+  theme(legend.position = "none",plot.title = element_text(size=11))+
+  labs(y="Average Creditworthiness scores")+
   ggtitle("Feed and Creditworthiness (English)")
 
 CredXFeed_CN <- ggplot(Data_CN, aes(Feed,credavg_all,color=Feed)) +
   geom_count() +
-  theme(legend.position = "none",plot.title = element_text(size=13))+
-  labs(caption = "*Larger dot size represents higher frequency of score")+
+  theme(legend.position = "none",plot.title = element_text(size=11))+
+  labs(y="Average Creditworthiness scores",
+       caption = "*Larger dot size represents higher frequency of score")+
   ggtitle("Feed and Creditworthiness (Chinese)")
 
 grid.arrange(CredXFeed_EN,CredXFeed_CN, nrow=1)
@@ -224,13 +226,15 @@ grid.arrange(CredXFeed_EN,CredXFeed_CN, nrow=1)
 #Feed X Newsworthiness
 NewsXFeed_EN <- ggplot(Data_EN, aes(Feed,nwavg_all,color=Feed)) +
   geom_count() +
-  theme(legend.position = "none",plot.title = element_text(size=13))+
+  theme(legend.position = "none",plot.title = element_text(size=11))+
+  labs(y="Average Newsworthiness scores")+
   ggtitle("Feed and Newsworthiness (English)")
 
 NewsXFeed_CN <- ggplot(Data_CN, aes(Feed,nwavg_all,color=Feed)) + 
   geom_count() +
-  theme(legend.position = "none",plot.title = element_text(size=13))+
-  labs(caption = "*Larger dot size represents higher frequency of score")+
+  theme(legend.position = "none",plot.title = element_text(size=11))+
+  labs(y="Average Newsworthiness scores",
+       caption = "*Larger dot size represents higher frequency of score")+
   ggtitle("Feed and Newsworthiness (Chinese)")
 
 grid.arrange(NewsXFeed_EN,NewsXFeed_CN, nrow=1)
@@ -331,8 +335,6 @@ conditions; it was applied for both the English and Chinese datasets, to
 replicate what the client did.
 
 ```{r homogeneity of variance, echo=FALSE}
-###Use Levene's
-library(car)
 
 ##newsworthiness... p > .05 for all three partitions of the data, so no concerns about heterogeneity of variance for newsworthiness across the 4 different feed types
 leveneTest(nwavg_all~Feed,data=Data_EN) #passed
@@ -427,13 +429,70 @@ The following table lays out the coefficients of the odds ratios and the 95% con
 ```{r,echo=FALSE}
 knitr::include_graphics("C:/Users/Joe/Desktop/676 Stat Practicum 2/Spring Consulting/ChineseAmerican/CP_Group2-main/CP_Group2-main/CP_Group2/Table Chinese English Odds Ratios.png") #when clicking on image under files, open option that says "copy path" and paste into quotes
 ```
+
+
+```{r,echo=FALSE}
+Data_EN <- na.omit(Data_EN)
+Data_EN <- Data_EN %>%
+  mutate(across(c("credavg_all", "Feed", "valence"), factor))
+model1_cred_EN <- polr(as.factor(credavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_EN)
+model1_news_EN <- polr(as.factor(nwavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_EN)
+model1_share_EN <- polr(as.factor(share_all) ~ as.factor(Feed) + as.factor(valence), data = Data_EN)
+summary(model1_cred_EN)
+summary(model1_news_EN)
+summary(model1_share_EN)
+```
+
+```{r,echo=FALSE}
+exp(cbind(OR = coef(model1_cred_EN), confint(model1_cred_EN)))
+exp(cbind(OR = coef(model1_news_EN), confint(model1_news_EN)))
+exp(cbind(OR = coef(model1_share_EN), confint(model1_share_EN)))
+```
+
+```{r,echo=FALSE}
+Data_CN <- na.omit(Data_CN)
+Data_CN <- Data_CN %>%
+  mutate(across(c("credavg_all", "Feed", "valence"), factor))
+model1_cred_CN <- polr(as.factor(credavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_CN)
+model1_news_CN <- polr(as.factor(nwavg_all) ~ as.factor(Feed) + as.factor(valence), data = Data_CN)
+model1_share_CN <- polr(as.factor(share_all) ~ as.factor(Feed) + as.factor(valence), data = Data_CN)
+summary(model1_cred_CN)
+summary(model1_news_CN)
+summary(model1_share_CN)
+```
+
+```{r,echo=FALSE}
+exp(cbind(OR = coef(model1_cred_CN), confint(model1_cred_CN)))
+exp(cbind(OR = coef(model1_news_CN), confint(model1_news_CN)))
+exp(cbind(OR = coef(model1_share_CN), confint(model1_share_CN)))
+```
+
 ## Interpretation for English Dataset
 
 Based on the output provided for the Proportional Odds Logistic
 Regression model, here's the interpretation:
 
 **Credibility Variable**
+```{r}
+# get coefficients (it's in matrix form)
+coefficients <- summary(model1_cred_EN)$coefficients[1:4,]
 
+# calculate p-values
+p_value <- (1 - pnorm(abs(coefficients[ ,"t value"]), 0, 1))*2
+
+# bind back to coefficients
+(coefficients <- cbind(coefficients, p_value))
+
+# calculate odds ratios
+odds_ratio <- exp(coefficients[ ,"Value"])
+
+# combine with coefficient and p_value
+(coefficients <- cbind(
+  coefficients[ ,c("Value", "p_value")],
+  odds_ratio
+))
+
+```
 1.  Feed Variable: For feed variable, only
     -   For "Feed" category 2 (memes), the coefficient is 0.488 with a
         p-value of approximately 0.029. This indicates that, compared to
@@ -468,7 +527,25 @@ Regression model, here's the interpretation:
         statistically significant.
 
 **Newsworthiness Variable**
+```{r}
+# get coefficients (it's in matrix form)
+coefficients <- summary(model1_news_EN)$coefficients[1:4,]
 
+# calculate p-values
+p_value <- (1 - pnorm(abs(coefficients[ ,"t value"]), 0, 1))*2
+
+# bind back to coefficients
+(coefficients <- cbind(coefficients, p_value))
+
+# calculate odds ratios
+odds_ratio <- exp(coefficients[ ,"Value"])
+
+# combine with coefficient and p_value
+(coefficients <- cbind(
+  coefficients[ ,c("Value", "p_value")],
+  odds_ratio
+))
+```
 1.  Feed Variable:
     -   For "Feed" category 2 (memes), the coefficient is 0.087 with a
         p-value of approximately 0.692. This suggests that there is no
@@ -500,7 +577,25 @@ Regression model, here's the interpretation:
         compared to those exposed to positive news.
 
 **Shareworthiness Variable**
+```{r}
+# get coefficients (it's in matrix form)
+coefficients <- summary(model1_share_EN)$coefficients[1:4,]
 
+# calculate p-values
+p_value <- (1 - pnorm(abs(coefficients[ ,"t value"]), 0, 1))*2
+
+# bind back to coefficients
+(coefficients <- cbind(coefficients, p_value))
+
+# calculate odds ratios
+odds_ratio <- exp(coefficients[ ,"Value"])
+
+# combine with coefficient and p_value
+(coefficients <- cbind(
+  coefficients[ ,c("Value", "p_value")],
+  odds_ratio
+))
+```
 1.  **Feed Variable:**
     -   For "Feed" category 2 (memes), the coefficient is 0.258 with a
         standard error of approximately 0.224. The p-value is approximately 0.249.
@@ -536,7 +631,25 @@ Based on the output provided for the Proportional Odds Logistic
 Regression model, here's the interpretation:
 
 **Credibility Variable**
+```{r}
+# get coefficients (it's in matrix form)
+coefficients <- summary(model1_cred_CN)$coefficients[1:4,]
 
+# calculate p-values
+p_value <- (1 - pnorm(abs(coefficients[ ,"t value"]), 0, 1))*2
+
+# bind back to coefficients
+(coefficients <- cbind(coefficients, p_value))
+
+# calculate odds ratios
+odds_ratio <- exp(coefficients[ ,"Value"])
+
+# combine with coefficient and p_value
+(coefficients <- cbind(
+  coefficients[ ,c("Value", "p_value")],
+  odds_ratio
+))
+```
 1.  Feed Variable:
     -   For "Feed" category 2, the coefficient is -0.019 with a standard
         error of approximately 0.233. The p-value is approximately 0.932. This suggests
@@ -568,7 +681,25 @@ Regression model, here's the interpretation:
         content compared to those exposed to positive valence content.
 
 **Newsworthiness Variable**
+```{r}
+# get coefficients (it's in matrix form)
+coefficients <- summary(model1_news_CN)$coefficients[1:4,]
 
+# calculate p-values
+p_value <- (1 - pnorm(abs(coefficients[ ,"t value"]), 0, 1))*2
+
+# bind back to coefficients
+(coefficients <- cbind(coefficients, p_value))
+
+# calculate odds ratios
+odds_ratio <- exp(coefficients[ ,"Value"])
+
+# combine with coefficient and p_value
+(coefficients <- cbind(
+  coefficients[ ,c("Value", "p_value")],
+  odds_ratio
+))
+```
 Thank you for providing the output for the Proportional Odds Logistic
 Regression model with the dependent variable "nwavg_all" and the
 independent variables "Feed" and "valence". Let's interpret the results:
@@ -608,7 +739,25 @@ independent variables "Feed" and "valence". Let's interpret the results:
         those exposed to positive valence content.
 
 **Shareworthiness Variable**
+```{r}
+# get coefficients (it's in matrix form)
+coefficients <- summary(model1_share_CN)$coefficients[1:4,]
 
+# calculate p-values
+p_value <- (1 - pnorm(abs(coefficients[ ,"t value"]), 0, 1))*2
+
+# bind back to coefficients
+(coefficients <- cbind(coefficients, p_value))
+
+# calculate odds ratios
+odds_ratio <- exp(coefficients[ ,"Value"])
+
+# combine with coefficient and p_value
+(coefficients <- cbind(
+  coefficients[ ,c("Value", "p_value")],
+  odds_ratio
+))
+```
 Thank you for providing the output for the Proportional Odds Logistic
 Regression model with the dependent variable "share_all" and the
 independent variables "Feed" and "valence". Let's interpret the results:
@@ -681,7 +830,6 @@ exp(cbind(OR = coef(model1_cred_CN), confint(model1_cred_CN)))
 exp(cbind(OR = coef(model1_news_CN), confint(model1_news_CN)))
 exp(cbind(OR = coef(model1_share_CN), confint(model1_share_CN)))
 ```
-
 
 ```{r}
 # get coefficients (it's in matrix form)
@@ -803,6 +951,3 @@ odds_ratio <- exp(coefficients[ ,"Value"])
   odds_ratio
 ))
 ```
-
-
-
