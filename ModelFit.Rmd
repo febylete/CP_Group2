@@ -140,44 +140,51 @@ There are positive moderate correlations among the three variables. This suggest
 ## ANOVA Assumption Check:
 
 ```{r plots,echo=FALSE}
-#Feed X Shareworthiness (ordinal, so boxplot)
-boxS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
-  geom_boxplot() + 
+#Most recent change as of 04/02 ... changed from boxplots
+
+#Feed X Shareworthiness
+ShareXFeed_EN <- ggplot(Data_EN, aes(Feed,share_all,color=Feed)) +
+  geom_count() + 
+  theme(legend.position = "none")+
   ggtitle("English Data Feed Type and Shareworthiness Scores (Ordinal)")
 
-boxS2 <- ggplot(Data_CN, aes(Feed,share_all,fill=Feed)) +
-  geom_boxplot() + 
+ShareXFeed_CN <- ggplot(Data_CN, aes(Feed,share_all,color=Feed)) +
+  geom_count() + 
+  theme(legend.position = "none")+
   ggtitle("Chinese Data Feed Type and Shareworthiness Scores (Ordinal)")
 
-grid.arrange(boxS1,boxS2,nrow=1)
+grid.arrange(ShareXFeed_EN,ShareXFeed_CN,nrow=1)
 
 #------------------------------------------------------------------------------
 
 #Feed X Creditworthiness
-ViolinC1 <- ggplot(Data_EN, aes(Feed,credavg_all,fill=Feed)) +
-  geom_violin() +
+CredXFeed_EN <- ggplot(Data_EN, aes(Feed,credavg_all,color=Feed)) +
+  geom_count() +
+  theme(legend.position = "none")+
   ggtitle("English Data Feed Type and Creditworthiness Scores")
 
-ViolinC2 <- ggplot(Data_CN, aes(Feed,credavg_all,fill=Feed)) +
-  geom_violin() +
+CredXFeed_CN <- ggplot(Data_CN, aes(Feed,credavg_all,color=Feed)) +
+  geom_count() +
+  theme(legend.position = "none")+
   ggtitle("Chinese Data Feed Type and Creditworthiness Scores")
 
-
-grid.arrange(ViolinC1,ViolinC2, nrow=1)
+grid.arrange(CredXFeed_EN,CredXFeed_CN, nrow=1)
 
 #------------------------------------------------------------------------------
 
-#Feed X Shareworthiness
-ViolinS1 <- ggplot(Data_EN, aes(Feed,share_all,fill=Feed)) +
-  geom_violin() +
+#Feed X Newsworthiness
+NewsXFeed_EN <- ggplot(Data_EN, aes(Feed,nwavg_all,color=Feed)) +
+  geom_count() +
+  theme(legend.position = "none")+
   ggtitle("English Data Feed Type and Shareworthiness Scores")
 
-ViolinS2 <- ggplot(Data_CN, aes(Feed,share_all,fill=Feed)) + 
-  geom_violin() +
+NewsXFeed_CN <- ggplot(Data_CN, aes(Feed,nwavg_all,color=Feed)) + 
+  geom_count() +
+  theme(legend.position = "none")+
   ggtitle("Chinese Data Feed Type and Shareworthiness Scores")
 
 
-grid.arrange(ViolinS1,ViolinS2, nrow=1)
+grid.arrange(NewsXFeed_EN,NewsXFeed_CN, nrow=1)
 
 ```
 
