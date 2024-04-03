@@ -431,7 +431,7 @@ knitr::include_graphics("C:/Users/Joe/Desktop/676 Stat Practicum 2/Spring Consul
 ```
 
 
-```{r,echo=FALSE}
+```{r,echo=FALSE,include=FALSE}
 Data_EN <- na.omit(Data_EN)
 Data_EN <- Data_EN %>%
   mutate(across(c("credavg_all", "Feed", "valence"), factor))
@@ -443,13 +443,13 @@ summary(model1_news_EN)
 summary(model1_share_EN)
 ```
 
-```{r,echo=FALSE}
+```{r,echo=FALSE,include=FALSE}
 exp(cbind(OR = coef(model1_cred_EN), confint(model1_cred_EN)))
 exp(cbind(OR = coef(model1_news_EN), confint(model1_news_EN)))
 exp(cbind(OR = coef(model1_share_EN), confint(model1_share_EN)))
 ```
 
-```{r,echo=FALSE}
+```{r,echo=FALSE,include=FALSE}
 Data_CN <- na.omit(Data_CN)
 Data_CN <- Data_CN %>%
   mutate(across(c("credavg_all", "Feed", "valence"), factor))
@@ -461,7 +461,7 @@ summary(model1_news_CN)
 summary(model1_share_CN)
 ```
 
-```{r,echo=FALSE}
+```{r,echo=FALSE,include=FALSE}
 exp(cbind(OR = coef(model1_cred_CN), confint(model1_cred_CN)))
 exp(cbind(OR = coef(model1_news_CN), confint(model1_news_CN)))
 exp(cbind(OR = coef(model1_share_CN), confint(model1_share_CN)))
